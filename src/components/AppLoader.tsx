@@ -20,8 +20,13 @@ const appSlugMap: Record<string, string> = {
 const AppLoader: React.FC<AppLoaderProps> = ({ appName }) => {
   const slug = appSlugMap[appName] || '';
   const ssoToken = localStorage.getItem('catalizia_sso_token') || '';
-  // Use subdomains instead of folders
-  const src = `https://${slug}.catalizia.com?sso=${encodeURIComponent(ssoToken)}`;
+  
+  // Smart URL detection
+  const isVercel = window.location.hostname.endsWith('vercel.app');
+  const baseDomain = isVercel ? 'vercel.app' : 'catalizia.com';
+  const prefix = isVercel ? 'catalizia-' : '';
+  
+  const src = `https://${prefix}${slug}.${baseDomain}?sso=${encodeURIComponent(ssoToken)}`;
 
   return (
     <iframe

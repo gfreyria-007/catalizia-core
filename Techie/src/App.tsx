@@ -453,7 +453,7 @@ const App: React.FC = () => {
     );
   }
 
-  if (!currentUser) {
+  if (!currentUser && !userProfile) {
     return (
       <div className="h-screen w-screen bg-[#0F172A] flex flex-col items-center justify-center p-6 text-center relative overflow-hidden font-sans">
         {/* Animated Background Accents */}
