@@ -1,6 +1,3 @@
 {
-  "rewrites": [
-    { "source": "/sso-check", "destination": "/index.html" },
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  "cleanUrls": true
 }
