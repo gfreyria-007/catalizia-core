@@ -3,5 +3,8 @@
   "framework": null,
   "installCommand": "echo 'No install needed'",
   "buildCommand": "echo 'No build needed'",
-  "outputDirectory": "."
+  "outputDirectory": ".",
+  "rewrites": [
+    { "source": "/sso-check", "destination": "/index.html" }
+  ]
 }

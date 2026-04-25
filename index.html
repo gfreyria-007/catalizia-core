@@ -169,14 +169,34 @@
         window.logout = () => signOut(auth);
 
         onAuthStateChanged(auth, async (user) => {
+            const params = new URLSearchParams(window.location.search);
+            const isSSOCheck = window.location.pathname.startsWith('/sso-check');
+
             if (user) {
+                const token = await user.getIdToken();
+                localStorage.setItem('catalizia_sso_token', token);
+
+                if (isSSOCheck) {
+                    const redirectUrl = params.get('redirect');
+                    if (redirectUrl) {
+                        const separator = redirectUrl.includes('?') ? '&' : '?';
+                        window.location.href = `${redirectUrl}${separator}sso=${encodeURIComponent(token)}`;
+                        return;
+                    }
+                }
+
                 loginScreen.style.display = 'none';
                 dashboard.style.display = 'block';
                 welcomeMsg.innerText = `¡Hola, ${user.displayName}! Elige tu destino:`;
-                
-                const token = await user.getIdToken();
-                localStorage.setItem('catalizia_sso_token', token);
             } else {
+                if (isSSOCheck) {
+                    const redirectUrl = params.get('redirect');
+                    if (redirectUrl) {
+                        const separator = redirectUrl.includes('?') ? '&' : '?';
+                        window.location.href = `${redirectUrl}${separator}no_sso=1`;
+                        return;
+                    }
+                }
                 loginScreen.style.display = 'block';
                 dashboard.style.display = 'none';
             }

@@ -43,21 +43,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const ssoToken = params.get('sso');
         if (ssoToken) {
           console.log('SSO Token detected, attempting auto-login...');
-          // In a serverless environment, we use the token to fetch the profile 
-          // while the user is redirected to a proper auth if needed.
-          // For now, we'll try to use the token to identify the user.
           try {
-            // We can't do a full Firebase login with just the ID token client-side,
-            // but we can decode it to get the UID and show the profile.
             const payload = JSON.parse(atob(ssoToken.split('.')[1]));
             if (payload && payload.user_id) {
               setIsProfileLoading(true);
               await loadUserProfile({ uid: payload.user_id, email: payload.email } as any);
               setIsProfileLoading(false);
+              setLoading(false);
+              return;
             }
           } catch (e) {
             console.error('SSO parsing error:', e);
           }
+        } else if (!params.has('no_sso')) {
+          // SILENT SSO CHECK: Redirect to Hub to see if user is logged in there
+          const hubUrl = window.location.hostname.endsWith('vercel.app') 
+            ? 'https://catalizia-core.vercel.app' 
+            : 'https://catalizia.com';
+          
+          window.location.href = `${hubUrl}/sso-check?redirect=${encodeURIComponent(window.location.href)}`;
+          return;
         }
         setProfile(null);
       }
