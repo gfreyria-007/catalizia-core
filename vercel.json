@@ -1,10 +1,6 @@
 {
-  "cleanUrls": true,
-  "framework": null,
-  "installCommand": "echo 'No install needed'",
-  "buildCommand": "echo 'No build needed'",
-  "outputDirectory": ".",
   "rewrites": [
-    { "source": "/sso-check", "destination": "/index.html" }
+    { "source": "/sso-check", "destination": "/index.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
