@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { 
   auth, db, googleProvider, appleProvider, signInWithPopup, signOut, onAuthStateChanged, 
-  doc, getDoc, setDoc, updateDoc, onSnapshot, FirebaseUser,
+  doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, FirebaseUser,
   collection, query, where, getDocs
 } from '../firebase';
 import { UserProfile, Grade } from '../types';

@@ -1,3 +1,4 @@
+import React from 'react';
 import { useAuth } from '../core/AuthContext';
 
 interface FooterProps {
@@ -5,7 +6,6 @@ interface FooterProps {
   subscriptionLevel?: string;
   onOpenFAQ?: () => void;
 }
-
 
 const Footer: React.FC<FooterProps> = ({ sessionTokensUsed, subscriptionLevel, onOpenFAQ }) => {
   const { logout } = useAuth();

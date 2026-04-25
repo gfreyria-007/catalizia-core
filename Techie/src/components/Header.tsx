@@ -1,3 +1,4 @@
+import React from 'react';
 import { Badge } from '../types';
 import { useAuth } from '../core/AuthContext';
 
@@ -14,7 +15,6 @@ interface HeaderProps {
   isMuted?: boolean;
   onToggleMute?: () => void;
 }
-
 
 const Header: React.FC<HeaderProps> = ({ 
   onResetProfile, onIncreaseFont, onDecreaseFont, canIncrease, canDecrease,
