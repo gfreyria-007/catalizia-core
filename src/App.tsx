@@ -8,7 +8,7 @@ import AppLoader from './components/AppLoader';
 
 const HubDashboard = () => {
   const [selectedApp, setSelectedApp] = React.useState<string | null>(null);
-  const { profile, loading, user } = useAuth();
+  const { profile, loading, user, loginWithGoogle } = useAuth();
 
   if (loading) return (
     <div className="h-screen bg-slate-900 flex items-center justify-center">
@@ -19,8 +19,8 @@ const HubDashboard = () => {
   if (!user) return (
     <div className="h-screen bg-slate-900 flex items-center justify-center">
       <button 
-        onClick={() => { /* Implement Login */ }}
-        className="bg-blue-600 text-white px-8 py-4 rounded-3xl font-black uppercase tracking-widest shadow-2xl hover:bg-blue-500 transition-all"
+        onClick={() => loginWithGoogle()}
+        className="bg-blue-600 text-white px-8 py-4 rounded-3xl font-black uppercase tracking-widest shadow-2xl hover:bg-blue-500 transition-all active:scale-95"
       >
         Entrar a Catalizia
       </button>
