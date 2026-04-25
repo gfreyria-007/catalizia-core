@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catalizia Core | Hub Central</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0f172a;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+            padding: 20px;
+        }
+        .logo {
+            font-size: 3rem;
+            font-weight: 900;
+            letter-spacing: -0.05em;
+            margin-bottom: 10px;
+        }
+        .logo span { color: #3b82f6; }
+        .tagline {
+            color: #94a3b8;
+            margin-bottom: 40px;
+            font-weight: 500;
+        }
+        .btn-login {
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 10px 40px rgba(37, 99, 235, 0.4);
+            transition: transform 0.2s, background-color 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        .btn-login:hover {
+            background-color: #1d4ed8;
+            transform: scale(1.05);
+        }
+        .btn-login:active {
+            transform: scale(0.95);
+        }
+        .dashboard {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            width: 100%;
+        }
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+        .app-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .app-card:hover {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+            transform: translateY(-5px);
+        }
+        .app-icon { font-size: 3rem; margin-bottom: 15px; }
+        .app-name { font-weight: 800; text-transform: uppercase; font-size: 0.9rem; }
+        
+        iframe {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            z-index: 1000;
+        }
+        .btn-back {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 2000;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <div id="login-screen" class="container">
+        <div class="logo">CATALIZIA <span>CORE</span></div>
+        <p class="tagline">Acceso Universal para todas tus apps educativas.</p>
+        <button id="btn-login" class="btn-login">Entrar a CatalizIA</button>
+    </div>
+
+    <div id="dashboard" class="dashboard container">
+        <div class="logo">HUB <span>CENTRAL</span></div>
+        <p id="welcome-msg" class="tagline">¡Hola!</p>
+        <div class="app-grid">
+            <div class="app-card" onclick="launchApp('techie')">
+                <div class="app-icon">🤖</div>
+                <div class="app-name">Techie Tutor</div>
+            </div>
+            <div class="app-card" onclick="alert('Próximamente...')">
+                <div class="app-icon">🎮</div>
+                <div class="app-name">Arcade 2099</div>
+            </div>
+        </div>
+        <button onclick="logout()" style="margin-top: 40px; background: none; border: none; color: #64748b; cursor: pointer; font-weight: 700;">Cerrar Sesión</button>
+    </div>
+
+    <button id="btn-back" class="btn-back" onclick="closeApp()">← Volver al Hub</button>
+    <iframe id="app-iframe"></iframe>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6VyxoGKiTZIVsm0EUc3kJscQJ4uLJtXA",
+            authDomain: "cataliziacore.firebaseapp.com",
+            projectId: "cataliziacore",
+            storageBucket: "cataliziacore.firebasestorage.app",
+            messagingSenderId: "333560620401",
+            appId: "1:333560620401:web:8a8cbabc9e528b39c102d0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        const loginScreen = document.getElementById('login-screen');
+        const dashboard = document.getElementById('dashboard');
+        const welcomeMsg = document.getElementById('welcome-msg');
+        const btnLogin = document.getElementById('btn-login');
+
+        btnLogin.onclick = () => {
+            signInWithPopup(auth, provider).catch(err => console.error(err));
+        };
+
+        window.logout = () => signOut(auth);
+
+        onAuthStateChanged(auth, async (user) => {
+            const params = new URLSearchParams(window.location.search);
+            const isSSOCheck = window.location.pathname.startsWith('/sso-check');
+
+            if (user) {
+                const token = await user.getIdToken();
+                localStorage.setItem('catalizia_sso_token', token);
+
+                if (isSSOCheck) {
+                    const redirectUrl = params.get('redirect');
+                    if (redirectUrl) {
+                        const separator = redirectUrl.includes('?') ? '&' : '?';
+                        window.location.href = `${redirectUrl}${separator}sso=${encodeURIComponent(token)}`;
+                        return;
+                    }
+                }
+
+                loginScreen.style.display = 'none';
+                dashboard.style.display = 'block';
+                welcomeMsg.innerText = `¡Hola, ${user.displayName}! Elige tu destino:`;
+            } else {
+                if (isSSOCheck) {
+                    const redirectUrl = params.get('redirect');
+                    if (redirectUrl) {
+                        const separator = redirectUrl.includes('?') ? '&' : '?';
+                        window.location.href = `${redirectUrl}${separator}no_sso=1`;
+                        return;
+                    }
+                }
+                loginScreen.style.display = 'block';
+                dashboard.style.display = 'none';
+            }
+        });
+
+        window.launchApp = (slug) => {
+            const token = localStorage.getItem('catalizia_sso_token');
+            const isVercel = window.location.hostname.endsWith('vercel.app');
+            const baseDomain = isVercel ? 'vercel.app' : 'catalizia.com';
+            const prefix = isVercel ? 'catalizia-' : '';
+            
+            const url = `https://${prefix}${slug}.${baseDomain}?sso=${encodeURIComponent(token)}`;
+            
+            const iframe = document.getElementById('app-iframe');
+            const btnBack = document.getElementById('btn-back');
+            
+            iframe.src = url;
+            iframe.style.display = 'block';
+            btnBack.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        };
+
+        window.closeApp = () => {
+            const iframe = document.getElementById('app-iframe');
+            const btnBack = document.getElementById('btn-back');
+            iframe.style.display = 'none';
+            btnBack.style.display = 'none';
+            iframe.src = '';
+            document.body.style.overflow = 'auto';
+        };
+    </script>
+</body>
+</html>
