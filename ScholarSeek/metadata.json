@@ -1,0 +1,5 @@
+{
+  "name": "ScholarSeek",
+  "description": "A specialized Systematic Literature Review assistant that generates structured tables of high-impact scientific publications based on any research topic.",
+  "requestFramePermissions": []
+}

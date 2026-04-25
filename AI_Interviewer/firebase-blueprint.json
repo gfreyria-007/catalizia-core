@@ -1,0 +1,60 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stores user progress and meta information.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "passedScenarios": { 
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "lastActive": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email"]
+    },
+    "Session": {
+      "title": "Interview Session",
+      "description": "Information about a specific interview attempt.",
+      "type": "object",
+      "properties": {
+        "scenarioId": { "type": "string" },
+        "scenarioTitle": { "type": "string" },
+        "finalScore": { "type": "number" },
+        "status": { "type": "string", "enum": ["active", "completed", "aborted"] },
+        "startedAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["scenarioId", "status", "startedAt"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "A single exchange in the interview.",
+      "type": "object",
+      "properties": {
+        "sender": { "type": "string", "enum": ["SAM", "JUDAH", "SYSTEM", "CANDIDATE"] },
+        "text": { "type": "string" },
+        "timestamp": { "type": "number" },
+        "score": { "type": "number" },
+        "reasoning": { "type": "string" },
+        "personaName": { "type": "string" }
+      },
+      "required": ["sender", "text", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User progress and profile data."
+    },
+    "/users/{userId}/sessions/{sessionId}": {
+      "schema": "Session",
+      "description": "Historical record of interview attempts."
+    },
+    "/users/{userId}/sessions/{sessionId}/messages/{messageId}": {
+      "schema": "Message",
+      "description": "Transcript of the interview session."
+    }
+  }
+}

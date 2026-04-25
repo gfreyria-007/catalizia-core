@@ -1,0 +1,6 @@
+{
+  "name": "Perficient Executive Gauntlet",
+  "description": "A high-stakes dual-persona AI interview simulator featuring Sam Davitt and Judah Tice. Test your executive precision, technical architecture depth, and outcome-based delivery skills.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": []
+}

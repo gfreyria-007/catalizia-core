@@ -1,0 +1,40 @@
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper to check if user is admin
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.token.email == 'gfreyria@gmail.com' || 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true
+      );
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      // Allow users to read/write their own basic profile during sync
+      // But only admin can change status and isAdmin flag
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      
+      // Allow first-time synchronization
+      allow create: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow users to update only 'reason', 'status' (to pending), and 'requestDate'
+      allow update: if request.auth != null && (
+        (request.auth.uid == userId && 
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reason', 'status', 'requestDate', 'displayName', 'photoURL']) &&
+         (request.resource.data.status == 'pending' || resource.data.status == 'unregistered')) ||
+        isAdmin()
+      );
+
+      // Only Admin can delete or ban
+      allow delete: if isAdmin();
+    }
+
+    // Test collection
+    match /test/{docId} {
+      allow read: if true;
+    }
+  }
+}

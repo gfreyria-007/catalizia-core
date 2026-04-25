@@ -1,0 +1,95 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Phase 3: Global Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isVerified() && request.auth.token.email == 'gfreyria@gmail.com';
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Entity Validations
+    function isValidUser(data) {
+      return data.keys().hasAll(['email']) &&
+             data.email is string && data.email.size() <= 128 &&
+             (!('passedScenarios' in data) || (data.passedScenarios is list && data.passedScenarios.size() <= 20));
+    }
+
+    function isValidSession(data) {
+      return data.keys().hasAll(['scenarioId', 'status', 'startedAt']) &&
+             data.scenarioId is string && data.scenarioId.size() <= 100 &&
+             data.status in ['active', 'completed', 'aborted'] &&
+             data.startedAt is timestamp &&
+             (!('finalScore' in data) || (data.finalScore is number && data.finalScore >= 0 && data.finalScore <= 10));
+    }
+
+    function isValidMessage(data) {
+      return data.keys().hasAll(['sender', 'text', 'timestamp']) &&
+             data.sender in ['SAM', 'JUDAH', 'SYSTEM', 'CANDIDATE'] &&
+             data.text is string && data.text.size() <= 10000 &&
+             data.timestamp is int;
+    }
+
+    // Rules
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      
+      allow create: if isOwner(userId) && isVerified() && isValidUser(incoming()) && incoming().email == request.auth.token.email;
+      
+      allow update: if isOwner(userId) && isValidUser(incoming()) && (
+        // Action: Update Progress
+        (incoming().diff(existing()).affectedKeys().hasOnly(['passedScenarios', 'lastActive', 'email']))
+      );
+    }
+
+    match /users/{userId}/sessions/{sessionId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isOwner(userId) || isAdmin();
+
+      allow create: if isOwner(userId) && isValidId(sessionId) && isValidSession(incoming());
+      
+      allow update: if isOwner(userId) && isValidSession(incoming()) && 
+        existing().status == 'active' && // 3. Terminal State Locking
+        (
+          // Action: Complete Session
+          (incoming().diff(existing()).affectedKeys().hasOnly(['status', 'finalScore', 'updatedAt']))
+        );
+
+      match /messages/{messageId} {
+        allow get: if isOwner(userId) || isAdmin();
+        allow list: if isOwner(userId) || isAdmin();
+
+        allow create: if isOwner(userId) && isValidId(messageId) && isValidMessage(incoming()) &&
+                      get(/databases/$(database)/documents/users/$(userId)/sessions/$(sessionId)).data.status == 'active';
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "entities": {
+    "Admin": {
+      "title": "Administrator",
+      "description": "A record representing a user with administrative privileges.",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The administrative email address."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When this admin record was created."
+        }
+      },
+      "required": ["email", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/admins/{adminId}": {
+      "schema": "Admin",
+      "description": "Collection of users with administrative access. Document ID is the Firebase Auth UID."
+    }
+  }
+}
