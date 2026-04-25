@@ -96,6 +96,7 @@ const HubDashboard = () => {
            ))}
         </div>
       </section>
+    )}
     </div>
   );
 };
