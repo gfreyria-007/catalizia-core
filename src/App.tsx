@@ -1,9 +1,6 @@
 import React from 'react';
 import { AuthProvider, useAuth } from './core/AuthContext';
-import { motion } from 'framer-motion';
-import { Shield, Zap, Award, Settings, LogOut } from 'lucide-react';
 import { auth, signOut } from './firebase';
-// Removed direct app wrapper import; apps are launched as independent micro‑frontends
 import AppLoader from './components/AppLoader';
 
 const HubDashboard = () => {
@@ -11,92 +8,77 @@ const HubDashboard = () => {
   const { profile, loading, user, loginWithGoogle } = useAuth();
 
   if (loading) return (
-    <div className="h-screen bg-slate-900 flex items-center justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-blue-500"></div>
+    <div style={{ height: '100vh', backgroundColor: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontFamily: 'sans-serif' }}>
+      <p>Cargando Catalizia...</p>
     </div>
   );
 
   if (!user) return (
-    <div className="h-screen bg-slate-900 flex items-center justify-center">
+    <div style={{ height: '100vh', backgroundColor: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontFamily: 'sans-serif' }}>
       <button 
         onClick={() => loginWithGoogle()}
-        className="bg-blue-600 text-white px-8 py-4 rounded-3xl font-black uppercase tracking-widest shadow-2xl hover:bg-blue-500 transition-all active:scale-95"
+        style={{ 
+          backgroundColor: '#2563eb', 
+          color: 'white', 
+          padding: '15px 30px', 
+          borderRadius: '30px', 
+          border: 'none', 
+          fontWeight: 'bold', 
+          cursor: 'pointer',
+          boxShadow: '0 10px 25px rgba(37, 99, 235, 0.4)'
+        }}
       >
-        Entrar a Catalizia
+        ENTRAR A CATALIZIA
       </button>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-[#0F172A] text-white p-6 font-sans">
-      <header className="max-w-6xl mx-auto flex justify-between items-center mb-12">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center font-black">C</div>
-          <h1 className="text-2xl font-black uppercase tracking-tighter">Catalizia <span className="text-blue-500">Hub</span></h1>
-        </div>
-        <button onClick={() => signOut(auth)} className="p-3 hover:bg-white/10 rounded-full transition-colors">
-          <LogOut size={20} />
-        </button>
-      </header>
-
-      <main className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Profile Card */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-          className="md:col-span-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-[3rem] p-10 flex flex-col sm:flex-row items-center gap-8"
-        >
-          <img src={user.photoURL || "https://api.dicebear.com/7.x/avataaars/svg?seed=Catalizia"} className="w-32 h-32 rounded-[2.5rem] border-4 border-blue-500/30" />
-          <div className="text-center sm:text-left">
-            <h2 className="text-4xl font-black mb-2">{profile?.name || user.displayName}</h2>
-            <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
-              <span className="px-4 py-1.5 bg-blue-600/20 text-blue-400 rounded-full text-xs font-black uppercase tracking-widest border border-blue-500/30 flex items-center gap-2">
-                <Shield size={12} /> {profile?.subscriptionLevel || 'Free'}
-              </span>
-              <span className="px-4 py-1.5 bg-amber-600/20 text-amber-400 rounded-full text-xs font-black uppercase tracking-widest border border-amber-500/30 flex items-center gap-2">
-                <Zap size={12} /> {profile?.dailyUsageCount} / {profile?.tokensPerDay} Tokens
-              </span>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 gap-6">
-           <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-6 flex items-center gap-4">
-              <div className="w-12 h-12 bg-purple-600/20 rounded-2xl flex items-center justify-center text-purple-400"><Award /></div>
-              <div>
-                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Medallas Totales</p>
-                <p className="text-2xl font-black">{profile?.badges?.length || 0}</p>
-              </div>
-           </div>
-           <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-6 flex items-center gap-4">
-              <div className="w-12 h-12 bg-emerald-600/20 rounded-2xl flex items-center justify-center text-emerald-400"><Settings /></div>
-              <div>
-                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Proyectos Guardados</p>
-                <p className="text-2xl font-black">{profile?.projects?.length || 0}</p>
-              </div>
-           </div>
-        </div>
-      </main>
-
+    <div style={{ minHeight: '100vh', backgroundColor: '#0F172A', color: 'white', padding: '20px', fontFamily: 'sans-serif' }}>
       {selectedApp ? (
-        <div className="p-4">
-          <AppLoader appName={selectedApp!} />
-          {/* Future app components can be added here */}
-          <button onClick={() => setSelectedApp(null)} className="mt-4 px-4 py-2 bg-gray-600 text-white rounded">Back to Hub</button>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, backgroundColor: '#0F172A' }}>
+           <button 
+             onClick={() => setSelectedApp(null)} 
+             style={{ position: 'absolute', top: '20px', left: '20px', zIndex: 110, padding: '10px 20px', backgroundColor: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '10px', cursor: 'pointer' }}
+           >
+             ← Volver al Hub
+           </button>
+           <AppLoader appName={selectedApp} />
         </div>
       ) : (
-        <section className="max-w-6xl mx-auto mt-12">
-        <h3 className="text-sm font-black text-gray-500 uppercase tracking-[0.4em] mb-6">Tus Apps Autorizadas</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-           {['Techie Tutor', 'Arcade 2099', 'ScholarSeek', 'BioBrain'].map(app => (
-             <div key={app} onClick={() => setSelectedApp(app)} className="bg-white/5 border border-white/5 p-6 rounded-[2rem] hover:border-blue-500/50 transition-all cursor-pointer group">
-                <div className="w-10 h-10 bg-slate-800 rounded-xl mb-4 group-hover:scale-110 transition-transform"></div>
-                <p className="text-xs font-bold uppercase tracking-tight">{app}</p>
-             </div>
-           ))}
+        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+          <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
+            <h1 style={{ margin: 0, fontSize: '24px', fontWeight: '900' }}>CATALIZIA <span style={{ color: '#3b82f6' }}>HUB</span></h1>
+            <button onClick={() => signOut(auth)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>Salir</button>
+          </header>
+
+          <section>
+            <h2 style={{ fontSize: '32px', fontWeight: '900', marginBottom: '10px' }}>¡Hola, {profile?.name || user.displayName}!</h2>
+            <p style={{ color: '#94a3b8', marginBottom: '30px' }}>Selecciona una aplicación para comenzar.</p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '20px' }}>
+              {['Techie Tutor'].map(app => (
+                <div 
+                  key={app} 
+                  onClick={() => setSelectedApp(app)} 
+                  style={{ 
+                    backgroundColor: 'rgba(255,255,255,0.05)', 
+                    border: '1px solid rgba(255,255,255,0.1)', 
+                    padding: '30px', 
+                    borderRadius: '24px', 
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <div style={{ fontSize: '40px', marginBottom: '10px' }}>🤖</div>
+                  <p style={{ margin: 0, fontWeight: 'bold', fontSize: '14px' }}>{app}</p>
+                </div>
+              ))}
+            </div>
+          </section>
         </div>
-      </section>
-    )}
+      )}
     </div>
   );
 };
