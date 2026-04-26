@@ -5,7 +5,7 @@ export enum Role {
   SYSTEM = "system",
 }
 
-export type ChatMode = 'default' | 'guided' | 'explorer' | 'researcher' | 'quiz-master' | 'image-studio' | 'arcade' | 'review-homework' | 'math-viva' | 'alchemist' | 'inventor' | 'language-buddy';
+export type ChatMode = 'default' | 'guided' | 'explorer' | 'researcher' | 'quiz-master' | 'image-studio' | 'arcade' | 'review-homework' | 'math-viva' | 'alchemist';
 
 export interface AlchemistContent {
   type: 'alchemist';
