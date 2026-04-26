@@ -183,23 +183,23 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   
                   {showTools && (
                       <div className="absolute bottom-full left-0 mb-4 w-[calc(100vw-2rem)] sm:w-72 bg-white/80 backdrop-blur-3xl rounded-[2rem] shadow-2xl border border-white overflow-hidden z-50 animate-fade-in-scale transform origin-bottom-left premium-shadow-lg">
-                          <div className="p-4 space-y-1">
+                          <div className="max-h-[60vh] overflow-y-auto p-4 space-y-1 custom-scrollbar">
                               <h4 className="px-3 mb-2 text-[10px] font-black text-blue-900/50 uppercase tracking-[0.2em]">HERRAMIENTAS MÁGICAS</h4>
                               {TOOL_DEFINITIONS.map(tool => (
                                   <button
                                       key={tool.id}
                                       type="button"
                                       onClick={() => handleToolAction(tool.id)}
-                                      className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg hover:bg-gray-50 transition-colors group"
+                                      className="w-full flex items-center gap-2 px-3 py-1.5 text-left rounded-xl hover:bg-blue-50/50 transition-colors group"
                                   >
-                                      <div className={`p-1.5 rounded-lg ${tool.iconBg} ${tool.iconText}`}>
-                                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <div className={`p-1 rounded-lg ${tool.iconBg} ${tool.iconText} shrink-0`}>
+                                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={tool.iconPath} />
                                           </svg>
                                       </div>
-                                      <div>
-                                          <span className={`block text-sm font-black text-blue-900 uppercase tracking-wide`}>{tool.title}</span>
-                                          <span className="block text-[10px] text-gray-500">{tool.desc}</span>
+                                      <div className="flex-1 min-w-0">
+                                          <span className="block text-[11px] font-black text-blue-900 uppercase tracking-wide truncate">{tool.title}</span>
+                                          <span className="block text-[9px] text-gray-500 truncate">{tool.desc}</span>
                                       </div>
                                   </button>
                               ))}
@@ -207,32 +207,32 @@ const ChatInput: React.FC<ChatInputProps> = ({
                               <button
                                   type="button"
                                   onClick={(e) => { e.preventDefault(); onOpenFAQ?.(); setShowTools(false); }}
-                                  className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg hover:bg-blue-50 transition-colors group"
+                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-left rounded-xl hover:bg-blue-50 transition-colors group"
                               >
-                                  <div className="p-1.5 rounded-lg bg-blue-100 text-blue-600">
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <div className="p-1 rounded-lg bg-blue-100 text-blue-600 shrink-0">
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                       </svg>
                                   </div>
-                                  <div>
-                                      <span className="block text-sm font-black text-blue-600 uppercase tracking-wide">Manual / FAQ</span>
-                                      <span className="block text-[10px] text-gray-400">¿Cómo funciona Techie?</span>
+                                  <div className="flex-1 min-w-0">
+                                      <span className="block text-[11px] font-black text-blue-600 uppercase tracking-wide truncate">Manual / FAQ</span>
+                                      <span className="block text-[9px] text-gray-400 truncate">¿Cómo funciona Techie?</span>
                                   </div>
                               </button>
                               <div className="border-t border-gray-100 my-1"></div>
                               <button
                                   type="button"
                                   onClick={logout}
-                                  className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg hover:bg-red-50 transition-colors group"
+                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-left rounded-xl hover:bg-red-50 transition-colors group"
                               >
-                                  <div className="p-1.5 rounded-lg bg-red-100 text-red-600">
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <div className="p-1 rounded-lg bg-red-100 text-red-600 shrink-0">
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                       </svg>
                                   </div>
-                                  <div>
-                                      <span className="block text-sm font-black text-red-600 uppercase tracking-wide">Cerrar Sesión</span>
-                                      <span className="block text-[10px] text-gray-400">Salir de la aplicación</span>
+                                  <div className="flex-1 min-w-0">
+                                      <span className="block text-[11px] font-black text-red-600 uppercase tracking-wide truncate">Cerrar Sesión</span>
+                                      <span className="block text-[9px] text-gray-400 truncate">Salir de la aplicación</span>
                                   </div>
                               </button>
                           </div>
