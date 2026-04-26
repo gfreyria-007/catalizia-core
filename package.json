@@ -1,0 +1,9 @@
+{
+  "name": "catalizia-hub",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build": "echo 'Static Hub - No build needed'",
+    "install": "echo 'Skipping install'"
+  }
+}
