@@ -13,7 +13,8 @@ import {
   Target, 
   Zap, 
   ShieldAlert, 
-  FileDown 
+  FileDown,
+  BookOpen
 } from 'lucide-react';
 import { User as FirebaseUser } from 'firebase/auth';
 
@@ -37,8 +38,8 @@ interface SidebarProps {
   Persona: any;
   fontSizeScale: number;
   setFontSizeScale: (scale: number | ((s: number) => number)) => void;
-  viewMode: 'Lobby' | 'Study' | 'Interview';
-  setViewMode: (mode: 'Lobby' | 'Study' | 'Interview') => void;
+  viewMode: 'Lobby' | 'Study' | 'Interview' | 'Victory';
+  setViewMode: (mode: 'Lobby' | 'Study' | 'Interview' | 'Victory') => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({

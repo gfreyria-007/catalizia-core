@@ -32,6 +32,7 @@ const translations = {
     tabAdmin: "Administración",
     importSuccess: "Informe cargado correctamente.",
     logout: "Cerrar Sesión",
+    login: "Iniciar Sesión con Google",
     adminBadge: "Administrador"
   },
   en: {

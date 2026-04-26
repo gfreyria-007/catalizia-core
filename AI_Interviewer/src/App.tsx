@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Persona, Message, GauntletState, Scenario } from './types';
 import { sendMessageToGauntlet, generatePanelSpeech, getCoachingAdvice, getStudyAssistantResponse } from './lib/gemini';
 import { SCENARIOS, STUDY_MODULES, MASTER_GLOSSARY } from './constants';
@@ -13,6 +13,7 @@ import {
   saveSession, 
   addMessageToSession 
 } from './lib/firebase';
+import { ShieldAlert } from 'lucide-react';
 import { 
   signInWithPopup, 
   onAuthStateChanged, 
@@ -407,8 +408,8 @@ export default function App() {
         Persona={Persona}
         fontSizeScale={fontSizeScale}
         setFontSizeScale={setFontSizeScale}
-        viewMode={viewMode}
-        setViewMode={setViewMode}
+        viewMode={state.viewMode}
+        setViewMode={(mode) => setState(prev => ({ ...prev, viewMode: mode }))}
       />
 
       <main className="flex-grow flex flex-col relative min-w-0 z-10">
