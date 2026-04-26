@@ -57,7 +57,7 @@ const FAQModal: React.FC<FAQModalProps> = ({ isOpen, onClose }) => {
             <div className="bg-amber-50/50 p-4 rounded-2xl border border-amber-100">
               <p className="text-sm font-bold text-amber-800 mb-2">¿Cómo gano medallas?</p>
               <p className="text-sm text-gray-600 leading-relaxed">
-                ¡Aprendiendo! Techie te premia cuando completas experimentos exitosos en el Laboratorio Alquimista 
+                ¡Aprendiendo! Techie te premia cuando completas misiones de estudio con éxito 
                 o cuando sacas 100% en tus desafíos de conocimiento (Quizzes).
               </p>
             </div>

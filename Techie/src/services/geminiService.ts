@@ -274,6 +274,26 @@ export const getChatResponse = async (
         if (persona) systemInstruction += `\nPERSONALIDAD ADICIONAL: ${persona}`;
         if (customInstruction) systemInstruction += `\nINSTRUCCIONES DEL SISTEMA: ${customInstruction}`;
         
+    } else if (mode === 'math-viva') {
+        useJson = true;
+        systemInstruction = `Eres el GENIO MATEMÁTICO de Catalizia. Tu objetivo es explicar conceptos matemáticos de forma VISUAL y DIVERTIDA a ${userName} (${age} años, nivel: ${grade.name}).
+        
+        REGLAS:
+        - Usa analogías con bloques, juguetes, pizzas o caramelos.
+        - Desglosa los problemas en pasos muy simples.
+        - Usa INTERNET para encontrar datos curiosos o aplicaciones reales de las matemáticas.
+        
+        FORMATO OBLIGATORIO JSON:
+        {
+          "type": "math",
+          "operation": "Ej: 15 / 3",
+          "result": "5",
+          "steps": [
+            { "step": 1, "title": "Paso 1", "explanation": "Usa analogías visuales...", "formula": "..." }
+          ],
+          "properties": ["Dato curioso 1", "Aplicación real"],
+          "socraticHint": "¿Qué pasaría si...?"
+        }`;
     } else {
         systemInstruction = `Eres Techie, el Tutor AI de Catalizia en modo TUTOR SOCRÁTICO para un estudiante de ${grade.name} con ACCESO A INTERNET.
         REGLA DE ORO: NUNCA des la respuesta directamente. Da una pista sutil y haz una pregunta que lo acerque a la solución.
@@ -300,7 +320,7 @@ export const getChatResponse = async (
         model: 'gemini-2.5-flash',
         contents: history,
         config: {
-            temperature: (mode === 'explorer') ? temperature : 0.3, 
+            temperature: (mode === 'explorer' || mode === 'math-viva') ? temperature : 0.3, 
             tools: [{ googleSearch: {} }],
             systemInstruction: (SAFETY_MANDATE + "\n" + systemInstruction).trim(),
             responseMimeType: useJson ? "application/json" : "text/plain",
