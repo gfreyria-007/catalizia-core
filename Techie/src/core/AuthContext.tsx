@@ -104,14 +104,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           data.lastCostResetDate = currentMonth;
         }
 
-        // Ensure trial field exists for legacy users
-        if (!data.trialExpiresAt) {
-          const trialExpires = new Date(data.createdAt || Date.now());
-          trialExpires.setDate(trialExpires.getDate() + 7);
-          await updateDoc(doc(db, 'users', u.uid), {
-            trialExpiresAt: trialExpires.toISOString()
-          });
-          data.trialExpiresAt = trialExpires.toISOString();
+        // Ensure trial field exists for legacy users and they are marked as approved
+        if (!data.trialExpiresAt || !data.isApproved) {
+          const updates: any = {};
+          if (!data.trialExpiresAt) {
+            const trialExpires = new Date(data.createdAt || Date.now());
+            trialExpires.setDate(trialExpires.getDate() + 7);
+            updates.trialExpiresAt = trialExpires.toISOString();
+            data.trialExpiresAt = trialExpires.toISOString();
+          }
+          if (!data.isApproved) {
+            updates.isApproved = true;
+            data.isApproved = true;
+          }
+          await updateDoc(doc(db, 'users', u.uid), updates);
         }
 
         setProfile(data);
