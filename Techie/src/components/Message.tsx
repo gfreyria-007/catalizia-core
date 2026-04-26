@@ -1,7 +1,7 @@
 
 import React, { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ChatMessage, Role, QuizOption, QuizResultContent } from '../types';
+import { ChatMessage, Role, QuizOption, QuizResultContent, Grade } from '../types';
 import QuizMessage from './QuizMessage';
 import ReviewMessage from './ReviewMessage';
 import ReviewAllMessage from './ReviewAllMessage';
@@ -10,6 +10,7 @@ import SearchMessage from './SearchMessage';
 import FullQuizMessage from './FullQuizMessage';
 import QuizReportMessage from './QuizReportMessage';
 import MathMessage from './MathMessage';
+import DeepResearchMessage from './DeepResearchMessage';
 
 interface MessageProps {
   message: ChatMessage;
@@ -21,11 +22,15 @@ interface MessageProps {
   onQuizFinished?: (result: QuizResultContent) => void;
   onAwardBadge?: (id: string, name: string, desc: string, icon: string) => void;
   onSaveProject?: (type: 'image' | 'report' | 'certificate', title: string, url?: string, content?: string) => void;
+  grade?: Grade;
+  userName?: string | null;
+  customKey?: string;
 }
 
 const Message: React.FC<MessageProps> = ({ 
     message, onQuizAnswer, onSelection, onImageClick, 
-    onCreateFlashcards, onEditImage, onQuizFinished, onAwardBadge, onSaveProject 
+    onCreateFlashcards, onEditImage, onQuizFinished, onAwardBadge, onSaveProject,
+    grade, userName, customKey
 }) => {
   const isUser = message.role === Role.USER;
   const isModel = message.role === 'model';
@@ -71,15 +76,14 @@ const Message: React.FC<MessageProps> = ({
       );
     } else if (content.type === 'deep-research') {
         mainContent = (
-            <div className="bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm">
-                <div className="bg-blue-900 p-4 text-white">
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60">Reporte de Investigación</span>
-                    <h2 className="text-xl font-black uppercase tracking-tighter mt-1">{content.topic}</h2>
-                </div>
-                <div className="p-5 md:p-8 text-gray-800 bg-white">
-                    {renderMarkdown(content.markdownReport)}
-                </div>
-            </div>
+            <DeepResearchMessage 
+                content={content} 
+                grade={grade} 
+                userName={userName} 
+                customKey={customKey}
+                onImageClick={onImageClick}
+                onSaveProject={onSaveProject}
+            />
         );
     } else if (content.type === 'quiz') {
         mainContent = <QuizMessage content={content} onAnswer={onQuizAnswer} />;

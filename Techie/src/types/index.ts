@@ -61,6 +61,14 @@ export interface MathContent {
     type: 'blocks' | 'pizza' | 'grid' | 'comparison';
     data: any;
   };
+  challenge?: {
+    question: string;
+    options: {
+        text: string;
+        isCorrect: boolean;
+        why: string;
+    }[];
+  };
 }
 
 
@@ -143,6 +151,14 @@ export interface SearchContent {
     level3: string;
   };
   sources?: SearchSource[];
+  socraticChallenge?: {
+    question: string;
+    options: {
+        text: string;
+        isCorrect: boolean;
+        explanation: string;
+    }[];
+  };
 }
 
 export interface ExamQuestion {
@@ -178,7 +194,7 @@ export interface Flashcard {
   answer: string;
 }
 
-export type SubscriptionLevel = 'free' | 'basic' | 'pro';
+export type SubscriptionLevel = 'free' | 'explorador' | 'maestro' | 'leyenda' | 'admin';
 
 export interface Badge {
   id: string;

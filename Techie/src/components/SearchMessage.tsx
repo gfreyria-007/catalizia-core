@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { SearchContent } from '../types';
+import SelectionMessage from './SelectionMessage';
 
 interface SearchMessageProps {
   content: SearchContent;
@@ -77,7 +78,31 @@ const SearchMessage: React.FC<SearchMessageProps> = ({ content, onCreateFlashcar
           </div>
       )}
 
-      {onCreateFlashcards && (
+      {/* Socratic Challenge for Explorer Mode */}
+      {content.socraticChallenge && (
+          <div className="mt-6 pt-6 border-t border-gray-100 animate-fade-in">
+              <div className="bg-indigo-900 rounded-[2rem] p-6 shadow-xl border-t-4 border-indigo-400 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-10 text-4xl">🎓</div>
+                <div className="relative z-10">
+                    <p className="text-[10px] font-black text-indigo-300 uppercase tracking-[0.2em] mb-4">Reto del Explorador</p>
+                    <SelectionMessage 
+                        content={{
+                            type: 'selection',
+                            question: content.socraticChallenge.question,
+                            options: content.socraticChallenge.options.map((opt: any) => ({
+                                text: opt.text,
+                                isCorrect: opt.isCorrect,
+                                feedback: opt.explanation || opt.why || (opt.isCorrect ? "¡Exacto! Tienes instinto de investigador." : "Casi... piénsalo de nuevo.")
+                            }))
+                        }} 
+                        onSelect={onCreateFlashcards ? () => onCreateFlashcards(activeText) : () => {}} 
+                    />
+                </div>
+              </div>
+          </div>
+      )}
+
+      {onCreateFlashcards && !content.socraticChallenge && (
           <div className="pt-2">
              <button
                 onClick={() => onCreateFlashcards(activeText)}

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MathContent } from '../types';
 
@@ -8,7 +8,9 @@ interface MathMessageProps {
 }
 
 const MathMessage: React.FC<MathMessageProps> = ({ content }) => {
-    const { operation, result, steps, properties, socraticHint, visualization } = content;
+    const { operation, result, steps, properties, socraticHint, visualization, challenge } = content;
+    const [challengeSelected, setChallengeSelected] = useState<number | null>(null);
+    const [challengeSolved, setChallengeSolved] = useState(false);
 
     const renderVisualization = () => {
         if (!visualization) return null;
@@ -234,15 +236,71 @@ const MathMessage: React.FC<MathMessageProps> = ({ content }) => {
                 ))}
             </div>
 
-            <div className="bg-blue-50/50 border border-blue-100 p-6 rounded-[2rem] border-dashed">
-                <div className="flex items-center gap-3 mb-2">
-                    <span className="text-xl">🤔</span>
-                    <h4 className="font-black text-[#1e3a8a] text-xs uppercase tracking-widest">¿Qué piensas tú?</h4>
+            {/* Interactive Socratic Challenge or Static Hint */}
+            {challenge && challenge.options && challenge.options.length > 0 ? (
+                <div className="bg-indigo-900 rounded-[2rem] p-6 shadow-xl border-t-4 border-indigo-400 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-10 text-4xl">🧮</div>
+                    <p className="text-[10px] font-black text-indigo-300 uppercase tracking-[0.2em] mb-3">Reto Matemático</p>
+                    <p className="text-sm font-bold text-white leading-snug mb-4">{challenge.question}</p>
+                    
+                    <AnimatePresence mode="wait">
+                        {challengeSelected === null ? (
+                            <motion.div key="options" initial={{ opacity: 1 }} exit={{ opacity: 0, x: -20 }} className="space-y-2">
+                                {challenge.options.map((opt, i) => (
+                                    <button
+                                        key={i}
+                                        onClick={() => {
+                                            setChallengeSelected(i);
+                                            if (opt.isCorrect) setChallengeSolved(true);
+                                        }}
+                                        className="w-full p-3 bg-white/10 hover:bg-white/20 rounded-xl text-left text-xs font-bold text-white transition-all border border-white/5 flex items-center gap-3"
+                                    >
+                                        <span className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-[10px] font-black shrink-0">
+                                            {String.fromCharCode(65 + i)}
+                                        </span>
+                                        {opt.text}
+                                    </button>
+                                ))}
+                            </motion.div>
+                        ) : (
+                            <motion.div 
+                                key="feedback" 
+                                initial={{ opacity: 0, scale: 0.9 }} 
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="space-y-4"
+                            >
+                                <div className={`p-3 rounded-xl flex items-center gap-3 ${challenge.options[challengeSelected].isCorrect ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}>
+                                    <span className="text-2xl">{challenge.options[challengeSelected].isCorrect ? '✅' : '❌'}</span>
+                                    <span className="text-xs font-black uppercase tracking-widest">
+                                        {challenge.options[challengeSelected].isCorrect ? '¡Brillante!' : 'Casi...'}
+                                    </span>
+                                </div>
+                                <p className="text-xs text-white/90 leading-relaxed italic">
+                                    "{challenge.options[challengeSelected].why}"
+                                </p>
+                                {!challengeSolved && (
+                                    <button 
+                                        onClick={() => setChallengeSelected(null)}
+                                        className="w-full py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                                    >
+                                        Intentar de nuevo
+                                    </button>
+                                )}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
-                <p className="text-sm font-medium text-blue-900 leading-relaxed italic">
-                    "{socraticHint}"
-                </p>
-            </div>
+            ) : socraticHint ? (
+                <div className="bg-blue-50/50 border border-blue-100 p-6 rounded-[2rem] border-dashed">
+                    <div className="flex items-center gap-3 mb-2">
+                        <span className="text-xl">🤔</span>
+                        <h4 className="font-black text-[#1e3a8a] text-xs uppercase tracking-widest">¿Qué piensas tú?</h4>
+                    </div>
+                    <p className="text-sm font-medium text-blue-900 leading-relaxed italic">
+                        "{socraticHint}"
+                    </p>
+                </div>
+            ) : null}
         </div>
     );
 };

@@ -34,7 +34,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from './core/AuthContext';
 import * as gameAudio from './utils/gameAudio';
 
-const MONTHLY_BUDGET_MXN = 25;
+const BUDGETS = {
+    FREE: 0,
+    MAESTRO: 50,
+    LEYENDA: 125
+};
+
 const COSTS = {
     FLASH: 0.01,
     PRO: 0.1,
@@ -100,12 +105,25 @@ const App: React.FC = () => {
   const [showMathLab, setShowMathLab] = useState(false);
 
   const isTrialActive = userProfile?.trialExpiresAt ? new Date() < new Date(userProfile.trialExpiresAt) : true;
-  const isSubscribed = userProfile?.isSubscribed || userProfile?.role === 'admin';
+  const isSubscribed = (userProfile?.subscriptionLevel === 'explorador' || userProfile?.subscriptionLevel === 'maestro' || userProfile?.role === 'admin');
   const isEmailVerified = currentUser?.emailVerified;
   const hasPersonalKey = !!userProfile?.personalApiKey;
 
-  const canUseSystemKey = isTrialActive || isSubscribed;
-  const canUseApp = isEmailVerified && (canUseSystemKey || hasPersonalKey);
+  // Maestro/Leyenda users and trial users get to use the system key.
+  // Explorador users must use their own key (BYOK).
+  const systemKeyExists = !!import.meta.env.VITE_GEMINI_API_KEY;
+  const canUseSystemKey = (isTrialActive || userProfile?.subscriptionLevel === 'maestro' || userProfile?.subscriptionLevel === 'leyenda' || userProfile?.role === 'admin') && systemKeyExists;
+  
+  const getMonthlyBudget = () => {
+    if (userProfile?.role === 'admin') return Infinity;
+    if (userProfile?.subscriptionLevel === 'leyenda') return BUDGETS.LEYENDA;
+    if (userProfile?.subscriptionLevel === 'maestro') return BUDGETS.MAESTRO;
+    return BUDGETS.FREE;
+  };
+
+  const isBudgetExceeded = (userProfile?.monthlyCostUsed || 0) >= getMonthlyBudget();
+
+  const canUseApp = isEmailVerified && (canUseSystemKey ? !isBudgetExceeded : hasPersonalKey);
   const getCustomKey = () => canUseSystemKey ? undefined : userProfile?.personalApiKey;
 
   useEffect(() => {
@@ -189,7 +207,7 @@ const App: React.FC = () => {
           gradeId: grade.id
         };
 
-        if ((userProfile?.subscriptionLevel === 'basic' || userProfile?.subscriptionLevel === 'pro') && userProfile.personalApiKey) {
+        if ((userProfile?.subscriptionLevel === 'explorador') && userProfile.personalApiKey) {
           updateData.personalApiKey = userProfile.personalApiKey;
         }
 
@@ -275,11 +293,24 @@ const App: React.FC = () => {
       }
 
       // Check usage limits only if using system key
-      if (userProfile.role !== 'admin' && !isBYOKMode) {
+      if (userProfile.role !== 'admin' && canUseSystemKey) {
           const isOverDailyLimit = userProfile.dailyUsageCount >= userProfile.tokensPerDay;
 
-          if (userProfile.subscriptionLevel === 'free' && isOverDailyLimit) {
+          if (userProfile.subscriptionLevel === 'free' && isOverDailyLimit && !isTrialActive) {
               addMessage(Role.MODEL, "¡Ups! Has alcanzado tu límite diario. Vuelve mañana o usa tu propia API Key para acceso ilimitado. 🚀");
+              return;
+          }
+
+          if (isBudgetExceeded && !isTrialActive) {
+              addMessage(Role.MODEL, {
+                type: 'selection',
+                text: "¡Atención! Has agotado tu crédito de tokens mensual de tu plan actual.",
+                question: "¿Qué te gustaría hacer?",
+                options: [
+                  { text: "Ver Planes de Mejora", isCorrect: true, feedback: "Redirigiendo al Hub...", action: () => window.location.href = '/' },
+                  { text: "Configurar mi propia llave", isCorrect: false, feedback: "Abriendo ajustes...", action: () => setShowSettingsModal(true) }
+                ]
+              });
               return;
           }
       }
@@ -381,7 +412,19 @@ const App: React.FC = () => {
       } catch (error: any) {
           console.error("Critical Chat Error:", error);
           setLastErrorMsg(error.message);
-          addMessage(Role.MODEL, `Hubo un problema al conectar con la biblioteca (${error.message || 'Error Desconocido'}). Inténtalo de nuevo.`);
+          
+          if (error.message?.includes('API key is missing')) {
+            addMessage(Role.MODEL, {
+                type: 'selection',
+                text: "¡Ups! Parece que falta la llave maestra para conectar con mi cerebro (API Key).",
+                question: "¿Quieres configurar tu propia llave gratuita ahora?",
+                options: [
+                    { text: "Sí, configurar llave", isCorrect: true, feedback: "¡Excelente! Se abrirá el panel de ajustes.", action: () => setShowSettingsModal(true) }
+                ]
+            });
+          } else {
+            addMessage(Role.MODEL, `Hubo un problema al conectar con la biblioteca (${error.message || 'Error Desconocido'}). Inténtalo de nuevo.`);
+          }
       } finally {
           setIsChatLoading(false);
           setLoadingText(undefined);
@@ -513,6 +556,20 @@ const App: React.FC = () => {
 
 
         <main className="flex-1 flex flex-col relative">
+          {userProfile && !isSubscribed && isTrialActive && (
+            <div className="bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest py-2 text-center shadow-lg z-[60] flex items-center justify-center gap-2">
+              <span>🌟 Periodo de prueba: 1 semana de acceso premium gratis</span>
+              <span className="opacity-60 hidden sm:inline">•</span>
+              <span className="opacity-80">Expira: {new Date(userProfile.trialExpiresAt!).toLocaleDateString()}</span>
+            </div>
+          )}
+          {userProfile && !isSubscribed && !isTrialActive && (
+            <div className="bg-red-600 text-white text-[10px] font-black uppercase tracking-widest py-2 text-center shadow-lg z-[60] flex items-center justify-center gap-2">
+              <span>🚨 Tu prueba ha terminado. Configura tu propia llave para seguir.</span>
+              <button onClick={() => setShowSettingsModal(true)} className="bg-white text-red-600 px-3 py-0.5 rounded-full hover:bg-red-50 transition-colors">Configurar</button>
+            </div>
+          )}
+
           {!isEmailVerified ? (
             <div className="flex-1 flex items-center justify-center p-4 bg-slate-50">
                 <div className="bg-white border border-gray-100 rounded-[3rem] p-12 max-w-md w-full shadow-2xl text-center">
@@ -553,35 +610,56 @@ const App: React.FC = () => {
             </div>
           ) : !canUseApp ? (
             <div className="flex-1 flex items-center justify-center p-4 bg-slate-50">
-                <div className="bg-white border border-gray-100 rounded-[3rem] p-12 max-w-md w-full shadow-2xl text-center">
-                    <div className="text-6xl mb-6">🔑</div>
-                    <h2 className="text-3xl font-black text-[#1e3a8a] mb-4 uppercase tracking-tight">Acceso Expirado</h2>
-                    <p className="text-gray-500 mb-8 leading-relaxed">
-                        Tu semana de prueba gratuita ha terminado. Para continuar usando Techie, tienes dos opciones:
+                <div className="bg-white border border-gray-100 rounded-[3rem] p-8 max-w-2xl w-full shadow-2xl text-center">
+                    <div className="text-6xl mb-6">🚀</div>
+                    <h2 className="text-3xl font-black text-[#1e3a8a] mb-2 uppercase tracking-tight">Potencia tu Aprendizaje</h2>
+                    <p className="text-gray-500 mb-8 text-sm leading-relaxed">
+                        {isBudgetExceeded ? 'Has agotado tu crédito mensual.' : 'Tu prueba gratuita ha terminado.'} Elige cómo quieres seguir explorando:
                     </p>
-                    <div className="space-y-4 mb-8">
-                        <div className="p-6 bg-blue-50 rounded-3xl border border-blue-100 text-left">
-                            <h4 className="font-black text-[#1e3a8a] uppercase text-xs mb-1">Opción 1: Premium</h4>
-                            <p className="text-[10px] text-gray-500 mb-4">Suscríbete por $50 MXN/mes para usar la infraestructura de CatalizIA.</p>
-                            <a href="https://catalizia.com#sub" className="block w-full py-3 bg-blue-600 text-white text-center font-black rounded-xl text-[10px] uppercase tracking-widest shadow-lg shadow-blue-500/20">Suscribirme</a>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                        {/* Maestro */}
+                        <div className="p-5 bg-blue-50 rounded-3xl border border-blue-100 text-left relative overflow-hidden group">
+                            <h4 className="font-black text-[#1e3a8a] uppercase text-[10px] mb-1">Maestro</h4>
+                            <p className="text-[8px] text-gray-500 mb-3">Tokens incluidos (50 MXN).</p>
+                            <div className="mt-auto">
+                                <span className="block font-black text-blue-700 text-xs mb-2">$100 <span className="text-[8px]">MXN/mes</span></span>
+                                <a href="https://buy.stripe.com/test_maestro" className="block w-full py-2 bg-blue-600 text-white text-center font-black rounded-xl text-[8px] uppercase tracking-widest">Elegir</a>
+                            </div>
                         </div>
-                        <div className="p-6 bg-gray-50 rounded-3xl border border-gray-100 text-left">
-                            <h4 className="font-black text-[#1e3a8a] uppercase text-xs mb-1">Opción 2: Bring Your Own Key</h4>
-                            <p className="text-[10px] text-gray-500 mb-4">Usa tu propia llave gratuita de Google Gemini para acceso ilimitado sin costo.</p>
-                            <button 
-                                onClick={() => setShowSettingsModal(true)}
-                                className="w-full py-3 bg-white border-2 border-gray-200 text-[#1e3a8a] font-black rounded-xl text-[10px] uppercase tracking-widest"
-                            >
-                                Configurar mi Llave
-                            </button>
+                        {/* Leyenda */}
+                        <div className="p-5 bg-purple-50 rounded-3xl border border-purple-100 text-left relative overflow-hidden group">
+                            <div className="absolute top-2 right-2 text-[8px] bg-purple-200 text-purple-700 px-2 py-0.5 rounded-full font-black">TOP</div>
+                            <h4 className="font-black text-purple-800 uppercase text-[10px] mb-1">Leyenda</h4>
+                            <p className="text-[8px] text-gray-500 mb-3">Máximo crédito (125 MXN).</p>
+                            <div className="mt-auto">
+                                <span className="block font-black text-purple-700 text-xs mb-2">$200 <span className="text-[8px]">MXN/mes</span></span>
+                                <a href="https://buy.stripe.com/test_leyenda" className="block w-full py-2 bg-purple-600 text-white text-center font-black rounded-xl text-[8px] uppercase tracking-widest">Elegir</a>
+                            </div>
+                        </div>
+                        {/* Explorador */}
+                        <div className="p-5 bg-indigo-50 rounded-3xl border border-indigo-100 text-left">
+                            <h4 className="font-black text-indigo-800 uppercase text-[10px] mb-1">Explorador</h4>
+                            <p className="text-[8px] text-gray-500 mb-3">Bring Your Own Key (BYOK).</p>
+                            <div className="mt-auto">
+                                <span className="block font-black text-indigo-700 text-xs mb-2">$50 <span className="text-[8px]">MXN/mes</span></span>
+                                <a href="https://buy.stripe.com/test_explorador" className="block w-full py-2 bg-indigo-600 text-white text-center font-black rounded-xl text-[8px] uppercase tracking-widest">Elegir</a>
+                            </div>
                         </div>
                     </div>
-                    <button 
-                        onClick={handleLogout}
-                        className="text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-red-500 transition-colors"
-                    >
-                        Cerrar Sesión
-                    </button>
+                    <div className="space-y-3">
+                        <button 
+                            onClick={() => setShowSettingsModal(true)}
+                            className="w-full py-3 bg-white border-2 border-gray-200 text-[#1e3a8a] font-black rounded-2xl text-[10px] uppercase tracking-widest hover:bg-gray-50 transition-all"
+                        >
+                            Ya tengo mi llave (Configurar)
+                        </button>
+                        <button 
+                            onClick={handleLogout}
+                            className="text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-red-500 transition-colors"
+                        >
+                            Cerrar Sesión
+                        </button>
+                    </div>
                 </div>
             </div>
           ) : !userName || !selectedGrade ? (
@@ -597,7 +675,7 @@ const App: React.FC = () => {
               
 
               <div className="flex-1 relative flex flex-col bg-white">
-                  <ChatWindow messages={messages} isLoading={isChatLoading} loadingText={loadingText} onQuizAnswer={(q, o) => o.isCorrect && chatMode === 'default' && handleSendMessage(`Siguiente paso?`)} onSelection={(t) => handleSendMessage(t)} onImageClick={(u,p)=> { setPopupImage(u); setPopupPrompt(p); setShowImagePopup(true); }} onCreateFlashcards={async (t)=> { const cards = await geminiService.generateFlashcards(t); setFlashcards(cards); setShowFlashcards(true); }} onEditImage={(u) => { setImageCreationUrl(u); setShowImageCreationModal(true); setShowImagePopup(false); }} onQuizFinished={(res) => addMessage(Role.MODEL, res)} onAwardBadge={handleAwardBadge} onSaveProject={handleSaveProject} />
+                  <ChatWindow messages={messages} isLoading={isChatLoading} loadingText={loadingText} onQuizAnswer={(q, o) => o.isCorrect && chatMode === 'default' && handleSendMessage(`Siguiente paso?`)} onSelection={(t) => handleSendMessage(t)} onImageClick={(u,p)=> { setPopupImage(u); setPopupPrompt(p); setShowImagePopup(true); }} onCreateFlashcards={async (t)=> { const cards = await geminiService.generateFlashcards(t); setFlashcards(cards); setShowFlashcards(true); }} onEditImage={(u) => { setImageCreationUrl(u); setShowImageCreationModal(true); setShowImagePopup(false); }} onQuizFinished={(res) => addMessage(Role.MODEL, res)} onAwardBadge={handleAwardBadge} onSaveProject={handleSaveProject} grade={selectedGrade || undefined} userName={userName} customKey={getCustomKey()} />
               </div>
               <ChatInput 
                 onSendMessage={handleSendMessage} 
@@ -743,7 +821,10 @@ const App: React.FC = () => {
 
         <AnimatePresence>
             {showMathLab && (
-                <MathLabModal onClose={() => setShowMathLab(false)} />
+                <MathLabModal 
+                  onClose={() => setShowMathLab(false)} 
+                  grade={selectedGrade || { id: 'primaria1', name: '1ro de Primaria' } as any}
+                />
             )}
         </AnimatePresence>
     </div>

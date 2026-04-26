@@ -1,6 +1,6 @@
 
 import React, { useRef, useEffect } from 'react';
-import { ChatMessage, QuizOption, QuizResultContent } from '../types';
+import { ChatMessage, QuizOption, QuizResultContent, Grade } from '../types';
 import Message from './Message';
 
 interface ChatWindowProps {
@@ -15,6 +15,9 @@ interface ChatWindowProps {
   onQuizFinished: (result: QuizResultContent) => void;
   onAwardBadge?: (id: string, name: string, desc: string, icon: string) => void;
   onSaveProject?: (type: 'image' | 'report' | 'certificate', title: string, url?: string, content?: string) => void;
+  grade?: Grade;
+  userName?: string | null;
+  customKey?: string;
 }
 
 const TypingIndicator: React.FC<{ text?: string }> = ({ text }) => {
@@ -42,7 +45,8 @@ const TypingIndicator: React.FC<{ text?: string }> = ({ text }) => {
 const ChatWindow: React.FC<ChatWindowProps> = ({ 
     messages, isLoading, loadingText, onQuizAnswer, 
     onSelection, onImageClick, onCreateFlashcards, onEditImage, 
-    onQuizFinished, onAwardBadge, onSaveProject 
+    onQuizFinished, onAwardBadge, onSaveProject,
+    grade, userName, customKey
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -65,6 +69,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                     onQuizFinished={onQuizFinished}
                     onAwardBadge={onAwardBadge}
                     onSaveProject={onSaveProject}
+                    grade={grade}
+                    userName={userName}
+                    customKey={customKey}
                 />
             ))}
             {isLoading && <TypingIndicator text={loadingText} />}

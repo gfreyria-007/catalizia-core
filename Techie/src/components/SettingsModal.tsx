@@ -37,9 +37,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, userProf
 
   const getSubLabel = (level?: SubscriptionLevel) => {
     switch (level) {
-      case 'basic': return '$50 MXN - Conexión Propia';
-      case 'pro': return '$99 MXN - Premium Plus';
-      default: return 'Gratis';
+      case 'explorador': return 'Plan Explorador ($50)';
+      case 'maestro': return 'Plan Maestro ($100)';
+      case 'leyenda': return 'Plan Leyenda ($200)';
+      case 'admin': return 'Plan Administrador';
+      default: return 'Periodo de Prueba';
     }
   };
 
@@ -75,7 +77,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, userProf
               <div>
                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Tu Llave de Acceso Personal (BYOK)</label>
                 <p className="text-[9px] text-gray-400 mb-3 ml-2 uppercase font-bold tracking-tight leading-relaxed">
-                  Si tu periodo de prueba ha terminado o quieres usar tu propia cuota ilimitada:
+                  {(userProfile.subscriptionLevel === 'maestro' || userProfile.subscriptionLevel === 'leyenda')
+                    ? `Estás en el Plan ${userProfile.subscriptionLevel === 'leyenda' ? 'Leyenda' : 'Maestro'}. Nosotros ponemos los tokens, pero puedes agregar tu propia llave si prefieres.`
+                    : 'Si estás en el Plan Explorador o tu prueba terminó, necesitas tu propia llave:'
+                  }
                   <br/>
                   <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-blue-500 underline font-black">Haz clic aquí para obtener tu código Gemini gratuito</a>.
                 </p>
@@ -102,7 +107,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, userProf
             {userProfile.subscriptionLevel === 'free' && (
               <div className="text-center p-4">
                 <p className="text-[10px] text-gray-400 font-bold uppercase leading-relaxed">
-                  ¿Necesitas más mensajes? Contacta al administrador para subir de nivel a $50 o $99 MXN.
+                  ¿Quieres más potencia? Suscríbete al Plan Explorador ($50), Maestro ($100) o Leyenda ($200) en el Hub de CatalizIA.
                 </p>
               </div>
             )}
