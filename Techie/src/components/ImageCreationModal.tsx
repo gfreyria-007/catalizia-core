@@ -388,9 +388,10 @@ const ImageCreationModal: React.FC<ImageCreationModalProps> = ({
       setIsPanning(false);
       setDraggingObjectId(null);
       if (isDrawing) {
-          if (activeTool === 'brush' || activeTool === 'eraser') {
+          if (activeTool === 'brush' || (activeTool as string) === 'eraser') {
               setObjects(prev => [...prev, { id: Date.now().toString(), type: 'drawing', x: 0, y: 0, color: activeTool === 'eraser' ? 'rgba(0,0,0,1)' : activeColor, size: activeTool === 'eraser' ? eraserSize : brushSize, points: currentPath, opacity: 1, isEraser: activeTool === 'eraser' }]);
-          } else if (activeTool === 'mask' || (activeTool === 'eraser' && showMask)) {
+          } 
+          if (activeTool === 'mask' || ((activeTool as string) === 'eraser' && showMask)) {
               const mCtx = maskCanvasRef.current?.getContext('2d');
               if (mCtx) {
                   mCtx.globalCompositeOperation = activeTool === 'eraser' ? 'destination-out' : 'source-over';

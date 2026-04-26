@@ -9,9 +9,10 @@ interface SettingsModalProps {
   userProfile: UserProfile;
   onProfileUpdate: (updated: UserProfile) => void;
   onDeleteData: () => Promise<void>;
+  onOpenFAQ: () => void;
 }
 
-const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, userProfile, onProfileUpdate, onDeleteData }) => {
+const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, userProfile, onProfileUpdate, onDeleteData, onOpenFAQ }) => {
   const [apiKey, setApiKey] = useState(userProfile.personalApiKey || '');
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -69,35 +70,33 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, userProf
               </div>
             </div>
 
-            {/* API Key Section */}
-            {(userProfile.subscriptionLevel === 'basic' || userProfile.subscriptionLevel === 'pro' || userProfile.role === 'admin') && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Tu Llave de Acceso Personal</label>
-                  <p className="text-[9px] text-gray-400 mb-3 ml-2 uppercase font-bold tracking-tight leading-relaxed">
-                    Para activar Techie en tu cuenta, por favor obtén tu código aquí:
-                    <br/>
-                    <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-blue-500 underline font-black">Haz clic aquí para obtener tu código</a> (copia el código y pégalo abajo).
-                  </p>
+            {/* API Key Section (BYOK) */}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Tu Llave de Acceso Personal (BYOK)</label>
+                <p className="text-[9px] text-gray-400 mb-3 ml-2 uppercase font-bold tracking-tight leading-relaxed">
+                  Si tu periodo de prueba ha terminado o quieres usar tu propia cuota ilimitada:
+                  <br/>
+                  <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-blue-500 underline font-black">Haz clic aquí para obtener tu código Gemini gratuito</a>.
+                </p>
 
-                  <input 
-                    type="password" 
-                    value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
-                    placeholder="Pega tu código aquí..."
-                    className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:outline-none focus:border-blue-500 transition-all text-sm font-mono text-center"
-                  />
-                </div>
-                
-                <button 
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className="w-full py-4 bg-blue-600 text-white font-black rounded-2xl hover:bg-[#1e3a8a] transition-all disabled:opacity-50 flex items-center justify-center gap-2 uppercase tracking-widest text-xs shadow-lg shadow-blue-500/20"
-                >
-                  {isSaving ? 'Conectando...' : 'Activar mi Conexión'}
-                </button>
+                <input 
+                  type="password" 
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  placeholder="Pega tu código aquí..."
+                  className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:outline-none focus:border-blue-500 transition-all text-sm font-mono text-center"
+                />
               </div>
-            )}
+              
+              <button 
+                onClick={handleSave}
+                disabled={isSaving}
+                className="w-full py-4 bg-blue-600 text-white font-black rounded-2xl hover:bg-[#1e3a8a] transition-all disabled:opacity-50 flex items-center justify-center gap-2 uppercase tracking-widest text-xs shadow-lg shadow-blue-500/20"
+              >
+                {isSaving ? 'Conectando...' : 'Guardar y Activar'}
+              </button>
+            </div>
 
 
             {userProfile.subscriptionLevel === 'free' && (
@@ -113,6 +112,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, userProf
                 {message}
               </p>
             )}
+
+            <div className="pt-2 text-center">
+              <button 
+                onClick={onOpenFAQ}
+                className="text-[9px] text-blue-400 hover:text-blue-600 font-black uppercase tracking-widest underline decoration-2 underline-offset-2"
+              >
+                Nota sobre Privacidad y Aprendizaje
+              </button>
+            </div>
 
             <div className="pt-6 border-t border-gray-100">
                 <button 

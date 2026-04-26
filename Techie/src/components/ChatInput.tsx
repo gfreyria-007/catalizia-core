@@ -133,9 +133,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
     if (chatMode === 'explorer') return "Pregunta a internet lo que quieras...";
     if (chatMode === 'researcher') return "Ingresa un tema para investigar...";
     if (chatMode === 'quiz-master') return "Tema del examen y número de preguntas...";
-    if (chatMode === 'math-viva') return "Ingresa una operación (ej: √144 o 2x + 5 = 15)...";
-    if (chatMode === 'inventor') return "Dime qué materiales tienes (ej: cartón, clips, cinta)...";
-    if (chatMode === 'language-buddy') return "¡Hablemos en otro idioma! ¿De qué quieres platicar?";
     return "Escribe tu pregunta...";
   };
   
@@ -240,7 +237,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   )}
               </div>
 
-              {(chatMode === 'explorer' || chatMode === 'math-viva') && (
+              {chatMode === 'explorer' && (
                 <div className="relative shrink-0 self-end mb-1" ref={configRef}>
                     <button
                         type="button"

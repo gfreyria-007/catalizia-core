@@ -34,6 +34,20 @@ const FAQModal: React.FC<FAQModalProps> = ({ isOpen, onClose }) => {
                 Próximamente, podrás conectar tu cuenta de <strong>Google Drive</strong> para guardar tus imágenes y diplomas directamente en tu propia "nube".
               </p>
             </div>
+            <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100">
+              <p className="text-sm font-bold text-blue-800 mb-2">Seguridad y Guardrails</p>
+              <p className="text-[11px] text-gray-600 leading-relaxed">
+                Techie está diseñado para ser un espacio seguro. Hemos implementado filtros especiales para jóvenes (guardrails) en la generación de texto e imágenes. 
+                Al ser tecnología en evolución, siempre es genial explorar en compañía de un adulto para aprender juntos.
+              </p>
+            </div>
+            <div className="bg-orange-50/50 p-4 rounded-2xl border border-orange-100">
+              <p className="text-sm font-bold text-orange-800 mb-2">Uso de Datos y Privacidad Escolar</p>
+              <p className="text-[11px] text-gray-600 leading-relaxed">
+                Techie es una herramienta escolar. Al usar el nivel gratuito de Google Gemini, el manejo de datos es igual al de <strong>gemini.google.com</strong>. 
+                Tus interacciones ayudan a que la IA aprenda (sin grado NDA). Para uso profesional con privacidad total, puedes conectar una cuenta de Google Cloud con facturación activa.
+              </p>
+            </div>
           </section>
 
           <section className="space-y-3">

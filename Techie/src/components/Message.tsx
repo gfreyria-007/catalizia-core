@@ -9,8 +9,6 @@ import SelectionMessage from './SelectionMessage';
 import SearchMessage from './SearchMessage';
 import FullQuizMessage from './FullQuizMessage';
 import QuizReportMessage from './QuizReportMessage';
-import MathVivaMessage from './MathVivaMessage';
-import AlchemistMessage from './AlchemistMessage';
 
 interface MessageProps {
   message: ChatMessage;
@@ -82,16 +80,23 @@ const Message: React.FC<MessageProps> = ({
                 </div>
             </div>
         );
-    } else if (content.type === 'math-viva') mainContent = <MathVivaMessage content={content} onAction={onSelection} />;
-    else if (content.type === 'alchemist') mainContent = <AlchemistMessage content={content} onSuccess={onSelection} onAwardBadge={onAwardBadge} />;
-    else if (content.type === 'quiz') mainContent = <QuizMessage content={content} onAnswer={onQuizAnswer} />;
-    else if (content.type === 'review') mainContent = <ReviewMessage content={content} />;
-    else if (content.type === 'review-all') mainContent = <ReviewAllMessage content={content} />;
-    else if (content.type === 'selection') mainContent = <SelectionMessage content={content} onSelect={onSelection} />;
-    else if (content.type === 'search') mainContent = <SearchMessage content={content} onCreateFlashcards={onCreateFlashcards} />;
-    else if (content.type === 'full-quiz') mainContent = <FullQuizMessage content={content} onFinish={onQuizFinished!} />;
-    else if (content.type === 'quiz-result') mainContent = <QuizReportMessage content={content} onAwardBadge={onAwardBadge} />;
-    else mainContent = null;
+    } else if (content.type === 'quiz') {
+        mainContent = <QuizMessage content={content} onAnswer={onQuizAnswer} />;
+    } else if (content.type === 'review') {
+        mainContent = <ReviewMessage content={content} />;
+    } else if (content.type === 'review-all') {
+        mainContent = <ReviewAllMessage content={content} />;
+    } else if (content.type === 'selection') {
+        mainContent = <SelectionMessage content={content} onSelect={onSelection} />;
+    } else if (content.type === 'search') {
+        mainContent = <SearchMessage content={content} onCreateFlashcards={onCreateFlashcards} />;
+    } else if (content.type === 'full-quiz') {
+        mainContent = <FullQuizMessage content={content} onFinish={onQuizFinished!} />;
+    } else if (content.type === 'quiz-result') {
+        mainContent = <QuizReportMessage content={content} onAwardBadge={onAwardBadge} />;
+    } else {
+        mainContent = null;
+    }
 
     return (
         <div className="space-y-3 w-full">
@@ -112,6 +117,7 @@ const Message: React.FC<MessageProps> = ({
     );
   };
 
+  return (
     <motion.div 
       initial={{ opacity: 0, scale: 0.8, y: 20 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -132,17 +138,17 @@ const Message: React.FC<MessageProps> = ({
           isUser 
             ? 'bg-gradient-to-br from-blue-900 to-blue-700 text-white rounded-br-none premium-shadow-lg' 
             : 'bg-white/70 backdrop-blur-xl text-slate-800 rounded-bl-none premium-shadow-lg'
-        } ${message.content.type === 'deep-research' || message.content.type === 'math-viva' ? 'w-full !p-0 overflow-hidden' : ''}`}>
+        } ${typeof message.content !== 'string' && message.content.type === 'deep-research' ? 'w-full !p-0 overflow-hidden' : ''}`}>
         {renderContent()}
         
-        {isModel && (message.content.type === 'image' || message.content.type === 'deep-research') && onSaveProject && (
+        {isModel && typeof message.content !== 'string' && (message.content.type === 'image' || message.content.type === 'deep-research') && onSaveProject && (
             <div className="absolute top-2 right-2 flex gap-1">
                 <button 
                     onClick={(e) => {
                         e.stopPropagation();
-                        if (message.content.type === 'image') {
+                        if (typeof message.content !== 'string' && message.content.type === 'image') {
                             onSaveProject('image', message.content.prompt || 'Mi Dibujo', message.content.url);
-                        } else if (message.content.type === 'deep-research') {
+                        } else if (typeof message.content !== 'string' && message.content.type === 'deep-research') {
                             onSaveProject('report', message.content.topic, undefined, message.content.markdownReport);
                         }
                     }}
@@ -156,6 +162,7 @@ const Message: React.FC<MessageProps> = ({
         )}
       </div>
     </motion.div>
+  );
 };
 
 export default Message;

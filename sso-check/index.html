@@ -6,87 +6,216 @@
     <title>Catalizia Core | Hub Central</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --bg: #0f172a;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --accent: #f59e0b;
+        }
+
         body {
             margin: 0;
             padding: 0;
-            background-color: #0f172a;
-            color: white;
+            background-color: var(--bg);
+            color: var(--text-main);
             font-family: 'Inter', sans-serif;
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 100vh;
-            overflow: hidden;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
+
         .container {
             text-align: center;
-            max-width: 600px;
+            max-width: 800px;
             width: 100%;
-            padding: 20px;
+            padding: 40px 20px;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
+
         .logo {
-            font-size: 3rem;
+            font-size: clamp(2.5rem, 8vw, 3.5rem);
             font-weight: 900;
             letter-spacing: -0.05em;
             margin-bottom: 10px;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        .logo span { color: #3b82f6; }
+        .logo span { 
+            background: linear-gradient(135deg, #3b82f6 0%, #2dd4bf 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
         .tagline {
-            color: #94a3b8;
+            color: var(--text-dim);
             margin-bottom: 40px;
             font-weight: 500;
+            font-size: 1.1rem;
         }
+
+        /* Status Banners */
+        .status-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 12px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            z-index: 100;
+            display: none;
+            backdrop-filter: blur(10px);
+        }
+        .status-trial { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-bottom: 1px solid rgba(59, 130, 246, 0.3); }
+        .status-expired { background: rgba(239, 68, 68, 0.2); color: #f87171; border-bottom: 1px solid rgba(239, 68, 68, 0.3); }
+
+        /* Login Screen */
         .btn-login {
-            background-color: #2563eb;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
             color: white;
             border: none;
-            padding: 20px 40px;
+            padding: 20px 48px;
             border-radius: 50px;
             font-size: 1.2rem;
             font-weight: 900;
             cursor: pointer;
-            box-shadow: 0 10px 40px rgba(37, 99, 235, 0.4);
-            transition: transform 0.2s, background-color 0.2s;
+            box-shadow: 0 10px 40px rgba(37, 99, 235, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             text-transform: uppercase;
             letter-spacing: 0.1em;
+            position: relative;
+            overflow: hidden;
         }
         .btn-login:hover {
-            background-color: #1d4ed8;
-            transform: scale(1.05);
+            transform: translateY(-2px);
+            box-shadow: 0 15px 50px rgba(37, 99, 235, 0.5);
         }
-        .btn-login:active {
-            transform: scale(0.95);
+        .btn-login::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s;
         }
+        .btn-login:hover::after { opacity: 1; }
+
+        /* Dashboard */
         .dashboard {
             display: none;
-            text-align: center;
-            padding: 40px;
             width: 100%;
         }
         .app-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
             margin-top: 40px;
         }
         .app-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 30px;
-            border-radius: 30px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 40px 30px;
+            border-radius: 32px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .app-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.4s;
         }
         .app-card:hover {
-            border-color: #3b82f6;
-            background: rgba(59, 130, 246, 0.1);
-            transform: translateY(-5px);
+            border-color: var(--primary);
+            background: rgba(59, 130, 246, 0.05);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
         }
-        .app-icon { font-size: 3rem; margin-bottom: 15px; }
-        .app-name { font-weight: 800; text-transform: uppercase; font-size: 0.9rem; }
+        .app-card:hover::before { opacity: 1; }
+        .app-icon { font-size: 3.5rem; margin-bottom: 20px; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2)); }
+        .app-name { font-weight: 800; text-transform: uppercase; font-size: 1rem; letter-spacing: 0.05em; color: var(--text-main); }
+        .app-desc { font-size: 0.85rem; color: var(--text-dim); margin-top: 8px; }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        .modal {
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 32px;
+            padding: 40px;
+            max-width: 450px;
+            width: 100%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: modalFadeUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes modalFadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .modal h2 { margin-top: 0; font-size: 2rem; font-weight: 900; }
+        .modal p { color: var(--text-dim); line-height: 1.6; margin-bottom: 30px; }
         
+        .btn-action {
+            display: inline-block;
+            width: 100%;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 16px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+            margin-bottom: 12px;
+        }
+        .btn-action:hover { background: #2563eb; transform: scale(1.02); }
+        .btn-secondary { background: transparent; border: 1px solid rgba(255,255,255,0.1); color: var(--text-dim); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.05); color: white; }
+
+        /* Subscription Specific */
+        .price-tag {
+            font-size: 3rem;
+            font-weight: 900;
+            color: white;
+            margin: 20px 0;
+        }
+        .price-tag span { font-size: 1.2rem; color: var(--text-dim); font-weight: 500; }
+
         iframe {
             display: none;
             position: fixed;
@@ -103,22 +232,40 @@
             top: 20px;
             left: 20px;
             z-index: 2000;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(15px);
             color: white;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 10px 20px;
-            border-radius: 15px;
+            padding: 12px 24px;
+            border-radius: 18px;
             cursor: pointer;
             font-weight: 700;
+            transition: all 0.2s;
         }
+        .btn-back:hover { background: rgba(0, 0, 0, 0.8); transform: translateX(-4px); }
+
+        .loader {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
+    <div id="trial-banner" class="status-banner status-trial">Tienes un pase de prueba de 1 semana activo. ¡Disfruta!</div>
+    <div id="expired-banner" class="status-banner status-expired">Tu periodo de prueba de 1 semana ha expirado. Suscríbete para continuar.</div>
+
     <div id="login-screen" class="container">
         <div class="logo">CATALIZIA <span>CORE</span></div>
         <p class="tagline">Acceso Universal para todas tus apps educativas.</p>
         <button id="btn-login" class="btn-login">Entrar a CatalizIA</button>
+        <div id="login-loader" class="loader"></div>
     </div>
 
     <div id="dashboard" class="dashboard container">
@@ -128,13 +275,71 @@
             <div class="app-card" onclick="launchApp('techie')">
                 <div class="app-icon">🤖</div>
                 <div class="app-name">Techie Tutor</div>
+                <div class="app-desc">Tu tutor personal con IA</div>
+            </div>
+            <div class="app-card" onclick="launchApp('interviewer')">
+                <div class="app-icon">🎙️</div>
+                <div class="app-name">AI Interviewer</div>
+                <div class="app-desc">Simulador de entrevistas</div>
             </div>
             <div class="app-card" onclick="alert('Próximamente...')">
-                <div class="app-icon">🎮</div>
-                <div class="app-name">Arcade 2099</div>
+                <div class="app-icon">🚀</div>
+                <div class="app-name">Scholar Seek</div>
+                <div class="app-desc">Buscador académico inteligente</div>
             </div>
         </div>
-        <button onclick="logout()" style="margin-top: 40px; background: none; border: none; color: #64748b; cursor: pointer; font-weight: 700;">Cerrar Sesión</button>
+        <button onclick="logout()" style="margin-top: 60px; background: none; border: none; color: #64748b; cursor: pointer; font-weight: 700; transition: color 0.2s;" onmouseover="this.style.color='#f8fafc'" onmouseout="this.style.color='#64748b'">Cerrar Sesión</button>
+    </div>
+
+    <!-- Email Verification Modal -->
+    <div id="verify-modal" class="modal-overlay" style="display: none;">
+        <div class="modal">
+            <h2>Confirma tu Email</h2>
+            <p>Hemos enviado un enlace de confirmación a tu correo. Por favor, verifícalo para activar tu acceso gratuito de 1 semana.</p>
+            <div style="background: rgba(59, 130, 246, 0.1); border-radius: 20px; padding: 20px; margin-bottom: 25px; text-align: left; border: 1px solid rgba(59, 130, 246, 0.2);">
+                <h4 style="margin: 0 0 10px 0; color: #60a5fa;">✨ ¿Por qué CatalizIA?</h4>
+                <p style="font-size: 0.85rem; margin: 0; color: #94a3b8;">
+                    Nuestras apps utilizan la <strong>API de Gemini</strong>. Esto significa que tus datos son privados y directos entre tú y la IA. Al conectar tu propia llave gratuita, obtienes el máximo rendimiento sin intermediarios.
+                </p>
+            </div>
+            <button class="btn-action" onclick="window.location.reload()">Ya lo verifiqué</button>
+            <button id="btn-resend" class="btn-action btn-secondary" onclick="resendEmail()">Reenviar correo</button>
+            <button class="btn-action btn-secondary" onclick="logout()">Cerrar Sesión</button>
+        </div>
+    </div>
+
+    <!-- Gemini Info Modal (Marketing) -->
+    <div id="gemini-info-modal" class="modal-overlay" style="display: none;">
+        <div class="modal" style="max-width: 500px;">
+            <h2>Privacidad y Poder con Gemini</h2>
+            <p>En CatalizIA, tú eres el dueño de tu inteligencia.</p>
+            <div style="text-align: left; margin-bottom: 25px;">
+                <div style="margin-bottom: 15px;">
+                    <strong style="color: #60a5fa; display: block; margin-bottom: 5px;">🛡️ Privacidad Total</strong>
+                    <span style="font-size: 0.9rem; color: #94a3b8;">Al usar una API directa, tus conversaciones no se comparten con terceros. Es una conexión segura y privada.</span>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <strong style="color: #60a5fa; display: block; margin-bottom: 5px;">⚡ Tokens Gratuitos</strong>
+                    <span style="font-size: 0.9rem; color: #94a3b8;">Aprovecha el generoso tier gratuito de Google Gemini Pro para estudiar, crear y programar sin costo.</span>
+                </div>
+                <div>
+                    <strong style="color: #60a5fa; display: block; margin-bottom: 5px;">🔑 Control Absoluto</strong>
+                    <span style="font-size: 0.9rem; color: #94a3b8;">CatalizIA es el motor, tú pones el combustible. Conecta tu API Key una sola vez y úsala en todas nuestras apps.</span>
+                </div>
+            </div>
+            <button class="btn-action" onclick="document.getElementById('gemini-info-modal').style.display='none'">¡Entendido!</button>
+        </div>
+    </div>
+
+    <!-- Subscription Modal -->
+    <div id="sub-modal" class="modal-overlay" style="display: none;">
+        <div class="modal">
+            <h2>Acceso Premium</h2>
+            <p>Tu semana de prueba gratuita ha terminado. Suscríbete para continuar disfrutando de la suite completa de CatalizIA.</p>
+            <div class="price-tag">50 MXN <span>/ mes</span></div>
+            <a href="https://buy.stripe.com/test_placeholder" id="stripe-link" class="btn-action">Suscribirme ahora</a>
+            <button class="btn-action btn-secondary" onclick="logout()">Cerrar Sesión</button>
+        </div>
     </div>
 
     <button id="btn-back" class="btn-back" onclick="closeApp()">← Volver al Hub</button>
@@ -142,7 +347,12 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { 
+            getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, sendEmailVerification 
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { 
+            getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC6VyxoGKiTZIVsm0EUc3kJscQJ4uLJtXA",
@@ -155,24 +365,135 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
 
         const loginScreen = document.getElementById('login-screen');
         const dashboard = document.getElementById('dashboard');
         const welcomeMsg = document.getElementById('welcome-msg');
         const btnLogin = document.getElementById('btn-login');
+        const loginLoader = document.getElementById('login-loader');
+        const verifyModal = document.getElementById('verify-modal');
+        const subModal = document.getElementById('sub-modal');
+        const trialBanner = document.getElementById('trial-banner');
+        const expiredBanner = document.getElementById('expired-banner');
 
         btnLogin.onclick = () => {
-            signInWithPopup(auth, provider).catch(err => console.error(err));
+            btnLogin.style.display = 'none';
+            loginLoader.style.display = 'block';
+            signInWithPopup(auth, provider).catch(err => {
+                console.error(err);
+                btnLogin.style.display = 'block';
+                loginLoader.style.display = 'none';
+            });
         };
 
-        window.logout = () => signOut(auth);
+        window.logout = () => {
+            signOut(auth).then(() => {
+                window.location.reload();
+            });
+        };
+
+        window.resendEmail = async () => {
+            const btn = document.getElementById('btn-resend');
+            try {
+                await sendEmailVerification(auth.currentUser);
+                btn.innerText = '¡Enviado!';
+                btn.disabled = true;
+                setTimeout(() => {
+                    btn.innerText = 'Reenviar correo';
+                    btn.disabled = false;
+                }, 10000);
+            } catch (err) {
+                console.error(err);
+                alert('Error al enviar el correo. Intenta de nuevo más tarde.');
+            }
+        };
+
+        let profileUnsubscribe = null;
 
         onAuthStateChanged(auth, async (user) => {
             const params = new URLSearchParams(window.location.search);
             const isSSOCheck = window.location.pathname.startsWith('/sso-check');
 
+            if (profileUnsubscribe) {
+                profileUnsubscribe();
+                profileUnsubscribe = null;
+            }
+
             if (user) {
+                // 1. Check Email Verification
+                if (!user.emailVerified) {
+                    verifyModal.style.display = 'flex';
+                    loginScreen.style.display = 'none';
+                    return;
+                } else {
+                    verifyModal.style.display = 'none';
+                }
+
+                // 2. Load/Create Profile with Real-time Listener
+                const userRef = doc(db, 'users', user.uid);
+                
+                // Initialize if not exists
+                const userDoc = await getDoc(userRef);
+                if (!userDoc.exists()) {
+                    const trialExpires = new Date();
+                    trialExpires.setDate(trialExpires.getDate() + 7);
+                    
+                    await setDoc(userRef, {
+                        uid: user.uid,
+                        email: user.email,
+                        name: user.displayName,
+                        createdAt: serverTimestamp(),
+                        trialExpiresAt: trialExpires.toISOString(),
+                        isSubscribed: false,
+                        role: 'user',
+                        hasSeenGeminiInfo: false
+                    });
+                    sendEmailVerification(user).catch(console.error);
+                }
+
+                // Start Real-time listener
+                profileUnsubscribe = onSnapshot(userRef, (snapshot) => {
+                    if (!snapshot.exists()) return;
+                    
+                    const userData = snapshot.data();
+                    const now = new Date();
+                    const trialExpiry = new Date(userData.trialExpiresAt);
+                    const isTrialActive = now < trialExpiry;
+                    const isSubscribed = userData.isSubscribed;
+
+                    // Update UI based on status
+                    if (!isTrialActive && !isSubscribed) {
+                        subModal.style.display = 'flex';
+                        expiredBanner.style.display = 'block';
+                        trialBanner.style.display = 'none';
+                        dashboard.style.opacity = '0.3';
+                        dashboard.style.pointerEvents = 'none';
+                    } else {
+                        subModal.style.display = 'none';
+                        expiredBanner.style.display = 'none';
+                        dashboard.style.opacity = '1';
+                        dashboard.style.pointerEvents = 'all';
+                        
+                        if (isTrialActive && !isSubscribed) {
+                            trialBanner.style.display = 'block';
+                            trialBanner.innerText = `Prueba gratuita de 1 semana activa. Expira el ${trialExpiry.toLocaleDateString()} a las ${trialExpiry.toLocaleTimeString()}`;
+                        } else {
+                            trialBanner.style.display = 'none';
+                        }
+
+                        // Show Gemini Info if not seen
+                        if (!userData.hasSeenGeminiInfo && !isSSOCheck) {
+                            setTimeout(() => {
+                                document.getElementById('gemini-info-modal').style.display = 'flex';
+                                updateDoc(userRef, { hasSeenGeminiInfo: true });
+                            }, 2000);
+                        }
+                    }
+                });
+
+                // 3. SSO logic
                 const token = await user.getIdToken();
                 localStorage.setItem('catalizia_sso_token', token);
 
@@ -187,7 +508,8 @@
 
                 loginScreen.style.display = 'none';
                 dashboard.style.display = 'block';
-                welcomeMsg.innerText = `¡Hola, ${user.displayName}! Elige tu destino:`;
+                welcomeMsg.innerText = `¡Hola, ${user.displayName.split(' ')[0]}! Elige tu destino:`;
+
             } else {
                 if (isSSOCheck) {
                     const redirectUrl = params.get('redirect');
@@ -199,6 +521,8 @@
                 }
                 loginScreen.style.display = 'block';
                 dashboard.style.display = 'none';
+                trialBanner.style.display = 'none';
+                expiredBanner.style.display = 'none';
             }
         });
 

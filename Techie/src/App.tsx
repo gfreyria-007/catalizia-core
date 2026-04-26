@@ -9,7 +9,6 @@ import UserProfileSetup from './components/UserProfileSetup';
 import ImageCreationModal from './components/ImageCreationModal';
 import ImagePopup from './components/ImagePopup';
 import FlashcardModal from './components/FlashcardModal';
-import AccessRequestModal from './components/AccessRequestModal';
 import AdminDashboard from './components/AdminDashboard';
 import SettingsModal from './components/SettingsModal';
 import BackpackModal from './components/BackpackModal';
@@ -43,48 +42,6 @@ const COSTS = {
 };
 
 
-const MathSubmenu: React.FC<{ onAction: (p: string) => void }> = ({ onAction }) => {
-  const [showTables, setShowTables] = useState(false);
-  const menuItems = [
-    { label: 'Sumas', icon: '+', prompt: 'Enséñame a sumar con un ejemplo visual de frutas' },
-    { label: 'Restas', icon: '-', prompt: 'Enséñame a restar con un ejemplo visual de manzanas' },
-    { label: 'Multiplicar', icon: '×', prompt: 'Enséñame a multiplicar con un ejemplo visual de bloques' },
-    { label: 'Dividir', icon: '÷', prompt: 'Enséñame a dividir con un ejemplo visual de agrupamiento' },
-    { label: 'Raíz', icon: '√', prompt: 'Enséñame la raíz cuadrada con un ejemplo visual de un cuadrado de bloques' },
-    { label: 'Tablas', icon: '▤', action: () => setShowTables(!showTables) },
-  ];
-
-  return (
-    <div className="bg-[#1e3a8a] p-3 z-20 shadow-lg sticky top-0 flex flex-col gap-2 transition-all">
-      <div className="overflow-x-auto whitespace-nowrap scrollbar-hide flex gap-2">
-        {menuItems.map((item, i) => (
-          <button 
-            key={i}
-            onClick={() => item.action ? item.action() : onAction(item.prompt)}
-            className={`px-4 py-2 rounded-xl flex items-center gap-2 transition-all active:scale-95 text-white ${item.label === 'Tablas' && showTables ? 'bg-white/30 ring-1 ring-white/50' : 'bg-white/10 hover:bg-white/20 border border-white/10'}`}
-          >
-            <span className="font-black text-blue-300 text-sm">{item.icon}</span>
-            <span className="text-[10px] font-black uppercase tracking-wider">{item.label}</span>
-          </button>
-        ))}
-      </div>
-      
-      {showTables && (
-        <div className="flex flex-wrap gap-2 pt-2 border-t border-white/10 animate-fade-in">
-          {Array.from({ length: 13 }, (_, i) => i + 1).map(n => (
-            <button 
-              key={n} 
-              onClick={() => { onAction(`Enséñame la tabla del ${n} con bloques visuales`); setShowTables(false); }}
-              className="w-10 h-10 rounded-lg bg-white/10 hover:bg-white/30 text-white font-black text-xs border border-white/10 transition-colors"
-            >
-              {n}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
 
 const App: React.FC = () => {
   const { 
@@ -99,6 +56,7 @@ const App: React.FC = () => {
     updateProfile,
     setProfileData,
     deleteAccount,
+    resendVerification,
     setProfile: setUserProfile
   } = useAuth();
 
@@ -138,6 +96,15 @@ const App: React.FC = () => {
   const [showArcade, setShowArcade] = useState(false);
   const [activeGame, setActiveGame] = useState<'snake' | 'tetris' | 'aliens' | null>(null);
   const [isMuted, setIsMuted] = useState(false);
+
+  const isTrialActive = userProfile?.trialExpiresAt ? new Date() < new Date(userProfile.trialExpiresAt) : true;
+  const isSubscribed = userProfile?.isSubscribed || userProfile?.role === 'admin';
+  const isEmailVerified = user?.emailVerified;
+  const hasPersonalKey = !!userProfile?.personalApiKey;
+
+  const canUseSystemKey = isTrialActive || isSubscribed;
+  const canUseApp = isEmailVerified && (canUseSystemKey || hasPersonalKey);
+  const getCustomKey = () => canUseSystemKey ? undefined : userProfile?.personalApiKey;
 
   useEffect(() => {
     gameAudio.setMuted(isMuted);
@@ -200,11 +167,8 @@ const App: React.FC = () => {
     }
 
     // Auto-trigger for interactive tools
-    if (['alchemist', 'language-buddy', 'inventor', 'quiz-master'].includes(newMode)) {
+    if (['quiz-master'].includes(newMode)) {
         let silentPrompt = "¡Actívate!";
-        if (newMode === 'alchemist') silentPrompt = "¡Propón un nuevo reto de alquimia!";
-        if (newMode === 'language-buddy') silentPrompt = "¡Hola! Inicia una conversación divertida en inglés para practicar.";
-        if (newMode === 'inventor') silentPrompt = "¡Hola Maestro Inventor! Ayúdame a crear algo nuevo.";
         if (newMode === 'quiz-master') silentPrompt = "¡Hola! Quiero tomar un examen sobre un tema interesante.";
         
         handleSendMessage(silentPrompt, undefined, false, 5, newMode);
@@ -299,33 +263,22 @@ const App: React.FC = () => {
   const handleSendMessage = async (text: string, file?: File, isReviewMode?: boolean, quizCount?: number, modeOverride?: ChatMode) => {
       if (!selectedGrade || !userProfile) return;
 
-      const activeMode = modeOverride || chatMode;
-      // Check subscription and API key
-      const isBasicTier = userProfile.subscriptionLevel === 'basic';
+      const isBYOKMode = !canUseSystemKey;
       const personalApiKey = userProfile.personalApiKey;
 
-      if (isBasicTier && !personalApiKey) {
-          addMessage(Role.MODEL, "¡Hola! Estás en la suscripción de $50 MXN (Usa tu propia cuota). Por favor, ingresa tu API Key de Gemini en tu perfil para continuar.");
+      if (isBYOKMode && !personalApiKey) {
+          addMessage(Role.MODEL, "¡Hola! Tu periodo de prueba ha terminado. Por favor, ingresa tu API Key de Gemini en tu perfil (BYOK) o suscríbete para continuar.");
+          setShowSettingsModal(true);
           return;
       }
 
-      // Check usage limits for non-basic users
-      if (userProfile.role !== 'admin' && !isBasicTier) {
+      // Check usage limits only if using system key
+      if (userProfile.role !== 'admin' && !isBYOKMode) {
           const isOverDailyLimit = userProfile.dailyUsageCount >= userProfile.tokensPerDay;
 
-          // Free users only have the daily limit
           if (userProfile.subscriptionLevel === 'free' && isOverDailyLimit) {
-              addMessage(Role.MODEL, "¡Ups! Has alcanzado tu límite de mensajes por hoy. Vuelve mañana para seguir aprendiendo con Techie. 🚀");
+              addMessage(Role.MODEL, "¡Ups! Has alcanzado tu límite diario. Vuelve mañana o usa tu propia API Key para acceso ilimitado. 🚀");
               return;
-          }
-
-          // Pro users have daily limit + monthly overflow budget
-          if (userProfile.subscriptionLevel === 'pro' && isOverDailyLimit) {
-              const isOverMonthlyBudget = (userProfile.monthlyCostUsed || 0) >= MONTHLY_BUDGET_MXN;
-              if (isOverMonthlyBudget) {
-                  addMessage(Role.MODEL, "Has alcanzado tanto tu límite diario como tu presupuesto mensual Premium Plus. Tu saldo se reiniciará el próximo mes. 📈");
-                  return;
-              }
           }
       }
 
@@ -356,13 +309,12 @@ const App: React.FC = () => {
       else if (activeMode === 'researcher') setLoadingText("Investigando y redactando reporte...");
       else if (activeMode === 'quiz-master') setLoadingText("Diseñando un examen...");
       else if (activeMode === 'explorer') setLoadingText("Buscando en la web...");
-      else if (activeMode === 'math-viva') setLoadingText("Activando Math Engine v5.2...");
       else setLoadingText("Techie está pensando...");
       
       try {
           let response: any;
           const history = getSimplifiedHistory([...messages, { role: Role.USER, content: text, timestamp: Date.now() }]);
-          const customKey = isBasicTier ? personalApiKey : undefined;
+          const customKey = getCustomKey();
 
           if (activeMode === 'quiz-master' && !isInitialGreeting) {
               const quizQuestions = await geminiService.generateTopicQuiz(text, selectedGrade, quizCount || 5, customKey);
@@ -401,14 +353,13 @@ const App: React.FC = () => {
                   }
               }
 
-              // Update usage count and cost only for non-basic users
-              if (!isInitialGreeting && userProfile.uid && !isBasicTier) {
+              // Update usage count and cost only for system key users
+              if (!isInitialGreeting && userProfile.uid && !isBYOKMode) {
                   const isOverDailyLimit = userProfile.dailyUsageCount >= userProfile.tokensPerDay;
                   
                   const newCount = userProfile.dailyUsageCount + 1;
                   let newMonthlyCost = userProfile.monthlyCostUsed || 0;
 
-                  // ONLY deduct from monthly budget if they are ALREADY over their daily free limit
                   if (isOverDailyLimit) {
                       let addedCost = COSTS.FLASH;
                       if (activeMode === 'researcher') addedCost = COSTS.RESEARCH;
@@ -559,10 +510,77 @@ const App: React.FC = () => {
 
 
         <main className="flex-1 flex flex-col relative">
-          {!isAdmin && !userProfile?.isApproved ? (
-            <AccessRequestModal 
-              onOpenAdmin={() => setShowAdminDashboard(true)} 
-            />
+          {!isEmailVerified ? (
+            <div className="flex-1 flex items-center justify-center p-4 bg-slate-50">
+                <div className="bg-white border border-gray-100 rounded-[3rem] p-12 max-w-md w-full shadow-2xl text-center">
+                    <div className="text-6xl mb-6">📧</div>
+                    <h2 className="text-3xl font-black text-[#1e3a8a] mb-4 uppercase tracking-tight">Verifica tu Email</h2>
+                    <p className="text-gray-500 mb-8 leading-relaxed">
+                        Para evitar el spam y proteger la comunidad, necesitamos que confirmes tu correo electrónico. 
+                        Revisa tu bandeja de entrada (y la carpeta de spam).
+                    </p>
+                    <div className="space-y-4">
+                        <button 
+                            onClick={() => window.location.reload()}
+                            className="w-full py-5 bg-[#1e3a8a] text-white font-black rounded-[2rem] shadow-xl hover:bg-black transition-all active:scale-95 uppercase tracking-widest"
+                        >
+                            Ya lo verifiqué ✅
+                        </button>
+                        <button 
+                            onClick={async () => {
+                                try {
+                                    await resendVerification();
+                                    alert("¡Correo enviado! Revisa tu bandeja de entrada.");
+                                } catch (e) {
+                                    alert("Hubo un error al enviar el correo. Intenta de nuevo más tarde.");
+                                }
+                            }}
+                            className="w-full py-4 bg-white border-2 border-gray-100 text-[#1e3a8a] font-black rounded-[2rem] hover:bg-gray-50 transition-all uppercase tracking-widest text-[10px]"
+                        >
+                            Reenviar Email de Confirmación
+                        </button>
+                    </div>
+                    <button 
+                        onClick={logout}
+                        className="mt-8 text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-red-500 transition-colors"
+                    >
+                        Cerrar Sesión
+                    </button>
+                </div>
+            </div>
+          ) : !canUseApp ? (
+            <div className="flex-1 flex items-center justify-center p-4 bg-slate-50">
+                <div className="bg-white border border-gray-100 rounded-[3rem] p-12 max-w-md w-full shadow-2xl text-center">
+                    <div className="text-6xl mb-6">🔑</div>
+                    <h2 className="text-3xl font-black text-[#1e3a8a] mb-4 uppercase tracking-tight">Acceso Expirado</h2>
+                    <p className="text-gray-500 mb-8 leading-relaxed">
+                        Tu semana de prueba gratuita ha terminado. Para continuar usando Techie, tienes dos opciones:
+                    </p>
+                    <div className="space-y-4 mb-8">
+                        <div className="p-6 bg-blue-50 rounded-3xl border border-blue-100 text-left">
+                            <h4 className="font-black text-[#1e3a8a] uppercase text-xs mb-1">Opción 1: Premium</h4>
+                            <p className="text-[10px] text-gray-500 mb-4">Suscríbete por $50 MXN/mes para usar la infraestructura de CatalizIA.</p>
+                            <a href="https://catalizia.com#sub" className="block w-full py-3 bg-blue-600 text-white text-center font-black rounded-xl text-[10px] uppercase tracking-widest shadow-lg shadow-blue-500/20">Suscribirme</a>
+                        </div>
+                        <div className="p-6 bg-gray-50 rounded-3xl border border-gray-100 text-left">
+                            <h4 className="font-black text-[#1e3a8a] uppercase text-xs mb-1">Opción 2: Bring Your Own Key</h4>
+                            <p className="text-[10px] text-gray-500 mb-4">Usa tu propia llave gratuita de Google Gemini para acceso ilimitado sin costo.</p>
+                            <button 
+                                onClick={() => setShowSettingsModal(true)}
+                                className="w-full py-3 bg-white border-2 border-gray-200 text-[#1e3a8a] font-black rounded-xl text-[10px] uppercase tracking-widest"
+                            >
+                                Configurar mi Llave
+                            </button>
+                        </div>
+                    </div>
+                    <button 
+                        onClick={logout}
+                        className="text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-red-500 transition-colors"
+                    >
+                        Cerrar Sesión
+                    </button>
+                </div>
+            </div>
           ) : !userName || !selectedGrade ? (
             <UserProfileSetup 
               onProfileSubmit={handleProfileSubmit} 
@@ -574,7 +592,6 @@ const App: React.FC = () => {
             <>
               <GradeSelector selectedGrade={selectedGrade} activeTool={TOOL_DEFINITIONS.find(t => t.id === chatMode)} onGradeChange={setSelectedGrade} />
               
-              {chatMode === 'math-viva' && <MathSubmenu onAction={(p) => handleSendMessage(p)} />}
 
               <div className="flex-1 relative flex flex-col bg-white">
                   <ChatWindow messages={messages} isLoading={isChatLoading} loadingText={loadingText} onQuizAnswer={(q, o) => o.isCorrect && chatMode === 'default' && handleSendMessage(`Siguiente paso?`)} onSelection={(t) => handleSendMessage(t)} onImageClick={(u,p)=> { setPopupImage(u); setPopupPrompt(p); setShowImagePopup(true); }} onCreateFlashcards={async (t)=> { const cards = await geminiService.generateFlashcards(t); setFlashcards(cards); setShowFlashcards(true); }} onEditImage={(u) => { setImageCreationUrl(u); setShowImageCreationModal(true); setShowImagePopup(false); }} onQuizFinished={(res) => addMessage(Role.MODEL, res)} onAwardBadge={handleAwardBadge} onSaveProject={handleSaveProject} />
@@ -582,11 +599,6 @@ const App: React.FC = () => {
               <ChatInput 
                 onSendMessage={handleSendMessage} 
                 onDefaultMode={() => handleModeChange('default')} 
-                onExplorerMode={() => handleModeChange('explorer')} 
-                onImageStudio={() => handleModeChange('image-studio')} 
-                onDeepResearch={() => handleModeChange('researcher')} 
-                onQuizMasterMode={() => handleModeChange('quiz-master')} 
-                onMathVivaMode={() => handleModeChange('math-viva')} 
                 onModeChange={handleModeChange}
                 chatMode={chatMode} 
                 isLoading={isChatLoading} 
@@ -607,7 +619,7 @@ const App: React.FC = () => {
             onGenerate={async (p, a, s, l, e, sz, src) => { 
                 setIsStudioLoading(true); 
                 try {
-                    const customKey = userProfile?.subscriptionLevel === 'basic' ? userProfile.personalApiKey : undefined;
+                    const customKey = getCustomKey();
                     const res = await geminiService.generateImage(p, a, selectedGrade!, userName!, s, l, e, sz, src, customKey); 
                     if (res) { addMessage(Role.MODEL, { type: 'image', url: res.url, prompt: p }); setStudioHistory(prev => [{ type: 'image', url: res.url }, ...prev]); } 
                 } catch(e: any) { addMessage(Role.MODEL, e.message); }
@@ -617,7 +629,7 @@ const App: React.FC = () => {
             onEdit={async (s, p, m, style, system) => { 
                 setIsStudioLoading(true); 
                 try {
-                    const customKey = userProfile?.subscriptionLevel === 'basic' ? userProfile.personalApiKey : undefined;
+                    const customKey = getCustomKey();
                     const url = await geminiService.editImage(s, p, selectedGrade!, m, style, system, customKey); 
                     if (url) { addMessage(Role.MODEL, { type: 'image', url, prompt: p }); setStudioHistory(prev => [{ type: 'image', url }, ...prev]); } 
                 } catch(e: any) { addMessage(Role.MODEL, e.message); }
@@ -659,6 +671,7 @@ const App: React.FC = () => {
             userProfile={userProfile} 
             onProfileUpdate={(updated) => setUserProfile(updated)} 
             onDeleteData={handleDeleteData}
+            onOpenFAQ={() => { setShowSettingsModal(false); setShowFAQ(true); }}
           />
         )}
 

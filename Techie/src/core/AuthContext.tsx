@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { 
   auth, db, googleProvider, appleProvider, signInWithPopup, signOut, onAuthStateChanged, 
   doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, FirebaseUser,
-  collection, query, where, getDocs
+  collection, query, where, getDocs, sendEmailVerification
 } from '../firebase';
 import { UserProfile, Grade } from '../types';
 import { GRADES } from '../constants';
@@ -19,6 +19,7 @@ interface AuthContextType {
   updateProfile: (data: Partial<UserProfile>) => Promise<void>;
   setProfileData: (data: any) => Promise<void>;
   deleteAccount: () => Promise<void>;
+  resendVerification: () => Promise<void>;
   setProfile: React.Dispatch<React.SetStateAction<UserProfile | null>>;
 }
 
@@ -103,6 +104,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           data.lastCostResetDate = currentMonth;
         }
 
+        // Ensure trial field exists for legacy users
+        if (!data.trialExpiresAt) {
+          const trialExpires = new Date(data.createdAt || Date.now());
+          trialExpires.setDate(trialExpires.getDate() + 7);
+          await updateDoc(doc(db, 'users', u.uid), {
+            trialExpiresAt: trialExpires.toISOString()
+          });
+          data.trialExpiresAt = trialExpires.toISOString();
+        }
+
         setProfile(data);
 
         // Real-time listener for profile updates
@@ -133,12 +144,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         }
 
+        const trialExpires = new Date();
+        trialExpires.setDate(trialExpires.getDate() + 7);
+
         const newProfile: UserProfile = {
           uid: u.uid,
           email: u.email || '',
           name: u.displayName || 'Estudiante',
           role: u.email === 'gfreyria@gmail.com' ? 'admin' : 'user',
-          isApproved: isApproved,
+          isApproved: true, // Auto-approve, logic is now handled by trial/sub
+          trialExpiresAt: trialExpires.toISOString(),
+          isSubscribed: false,
           tokensPerDay: 100,
           dailyUsageCount: 0,
           lastUsageDate: new Date().toISOString().split('T')[0],
@@ -146,6 +162,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
 
         await setDoc(doc(db, 'users', u.uid), newProfile);
+        sendEmailVerification(u).catch(console.error);
         setProfile(newProfile);
       }
     } catch (error) {
@@ -212,12 +229,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const resendVerification = async () => {
+    if (!auth.currentUser) return;
+    try {
+      await sendEmailVerification(auth.currentUser);
+    } catch (error) {
+      console.error("Error resending verification:", error);
+      throw error;
+    }
+  };
+
   const isAdmin = profile?.role === 'admin' || user?.email === 'gfreyria@gmail.com';
 
   return (
     <AuthContext.Provider value={{ 
       user, profile, loading, isProfileLoading, isAdmin, 
-      login, appleLogin, logout, updateProfile, setProfileData, deleteAccount, setProfile 
+      login, appleLogin, logout, updateProfile, setProfileData, deleteAccount, resendVerification, setProfile 
     }}>
       {children}
     </AuthContext.Provider>

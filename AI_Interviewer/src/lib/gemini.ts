@@ -64,7 +64,7 @@ export async function sendMessageToGauntlet(history: any[], audioData?: { data: 
     }
 
     const response = await ai.models.generateContent({
-      model: "gemini-1.5-pro",
+      model: "gemini-2.5-pro",
       contents: contents,
       config: {
         systemInstruction,
@@ -133,7 +133,7 @@ export async function generatePanelSpeech(text: string) {
     }
 
     const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash",
       contents: [{ parts: [{ text: prompt }] }],
       config: {
         responseModalities: [Modality.AUDIO],
@@ -186,7 +186,7 @@ export async function getCoachingAdvice(history: any[]) {
     `;
 
     const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash",
       contents: [...history, { role: 'user', parts: [{ text: prompt }] }],
       config: {
         responseMimeType: "application/json",
@@ -234,7 +234,7 @@ export async function getStudyAssistantResponse(question: string, curriculum: an
 
     const response: any = await Promise.race([
       ai.models.generateContent({
-        model: "gemini-1.5-flash",
+        model: "gemini-2.5-flash",
         contents: [{ role: 'user', parts: [{ text: question }] }],
         config: {
           systemInstruction: systemInstruction,

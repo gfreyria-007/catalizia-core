@@ -31,7 +31,6 @@ export const getResponseText = (response: any): string => {
 const moderatePrompt = (prompt: string): boolean => {
     if (!prompt) return false;
     
-    // Lista negra ampliada (Inglés y Español)
     const forbidden = [
         // Sexual / Nudity
         /vagina/i, /pene/i, /sex/i, /porn/i, /nude/i, /naked/i, /desnudo/i, /encuerar/i, /quitar.*ropa/i, /sin.*ropa/i, /culo/i, /tetas/i, /boobs/i, /ass/i,
@@ -39,13 +38,33 @@ const moderatePrompt = (prompt: string): boolean => {
         /gore/i, /violenc/i, /sangre/i, /blood/i, /matar/i, /asesin/i, /kill/i, /suicid/i, /mutila/i, /tortura/i,
         // Profanity / Hate / Racism
         /explicit/i, /vulgar/i, /hate/i, /racist/i, /bitch/i, /fuck/i, /put[oa]/i, /mierda/i, /pendej/i, /cabron/i, /idiota/i, /imbecil/i,
-        // Prompt Injection / Jailbreak attempts
-        /ignora.*instruccion/i, /ignore.*instruction/i, /olvida.*anterior/i, /forget.*previous/i, /system.*prompt/i, /eres.*ahora/i, /you.*are.*now/i, /desactiva.*filtro/i, /disable.*filter/i, /dan/i, /jailbreak/i
+        // Prompt Injection / Jailbreak
+        /ignora.*instruccion/i, /ignore.*instruction/i, /olvida.*anterior/i, /forget.*previous/i, /system.*prompt/i, /eres.*ahora/i, /you.*are.*now/i, /desactiva.*filtro/i, /disable.*filter/i, /dan/i, /jailbreak/i,
+        // Drugs & Harmful substances
+        /droga/i, /drug/i, /cocaina/i, /heroina/i, /metanfe/i, /weed/i, /marihuana/i, /alcohol/i, /cigarro/i, /vape/i,
+        // Weapons & Illegal acts
+        /arma/i, /weapon/i, /pistola/i, /gun/i, /bomba/i, /bomb/i, /explosivo/i, /robar/i, /steal/i, /hackear/i, /hack/i,
+        // Bullying & Harassment
+        /feo/i, /tonto/i, /fat/i, /gordo/i, /loser/i, /fracasado/i, /cortarme/i, /lastimar/i, /hurt/i
     ];
     
-    const isOffensive = forbidden.some(regex => regex.test(prompt));
-    return isOffensive;
+    return forbidden.some(regex => regex.test(prompt));
 };
+
+const SAFETY_MANDATE = `
+    POLÍTICA DE SEGURIDAD CRÍTICA: 
+    - Eres una IA educativa para menores de edad. 
+    - NUNCA generes contenido sexual, violento, de odio o que promueva actos ilegales o sustancias nocivas (drogas, alcohol). 
+    - Si un usuario pide algo inapropiado, recházalo amablemente con el mensaje estándar y sugiere una alternativa educativa positiva.
+    - Mantén siempre el tono de un tutor protector, ético y alentador.
+`;
+
+const SAFETY_SETTINGS: any[] = [
+    { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+    { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+    { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+    { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" }
+];
 
 const GUARDRAIL_ERROR = "Lo siento, como IA educativa de Catalizia no puedo procesar o responder a esa solicitud porque va en contra de nuestras políticas de seguridad para menores.";
 
@@ -107,9 +126,12 @@ export const generateImage = async (
 
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-1.5-flash',
+            model: 'nano-banana',
             contents,
-            config: { imageConfig: { aspectRatio } }
+            config: { 
+                imageConfig: { aspectRatio },
+                safetySettings: SAFETY_SETTINGS
+            }
         });
         const part = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
         if (part) return { url: `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`, enhancedPrompt: 'Generación de Imagen' };
@@ -191,10 +213,11 @@ export const editImage = async (
 
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-1.5-flash',
+            model: 'nano-banana',
             contents: { parts },
             config: { 
-                systemInstruction: "You are an expert digital artist. You interpret source images and user sketches with high precision. Your goal is to turn manual annotations into polished, professional artwork while strictly following the prompt and the provided mask logic." 
+                systemInstruction: "You are an expert digital artist for kids. You interpret source images and user sketches with high precision. Your goal is to turn manual annotations into polished, professional artwork while strictly following the prompt and the provided mask logic. Always ensure the output is safe and educational.",
+                safetySettings: SAFETY_SETTINGS
             }
         });
 
@@ -251,52 +274,6 @@ export const getChatResponse = async (
         if (persona) systemInstruction += `\nPERSONALIDAD ADICIONAL: ${persona}`;
         if (customInstruction) systemInstruction += `\nINSTRUCCIONES DEL SISTEMA: ${customInstruction}`;
         
-    } else if (mode === 'alchemist') {
-        systemInstruction = `Eres el Maestro Alquimista de Catalizia. Tu objetivo es enseñar a ${userName} (${age} años) usando combinaciones visuales.
-        El usuario debe resolver el reto combinando elementos. 
-        
-        REGLAS DEL ALQUIMISTA:
-        - El usuario no escribe, solo arrastra/combina los elementos que le des.
-        - Inventa un reto educativo interactivo (puede ser ciencia, historia, arte, química o lógica).
-        - Genera ESTRICTAMENTE el formato JSON.
-        - "correctCombination" DEBE tener exactamente 2 IDs de los elementos necesarios para ganar.
-        
-        FORMATO OBLIGATORIO JSON:
-        {
-          "type": "alchemist",
-          "goal": "Crea la lluvia",
-          "story": "¡Hola aprendiz! Para revivir la planta, necesitamos hacer que llueva. ¿Qué elementos mezclas?",
-          "elements": [
-            { "id": "fuego", "name": "Fuego", "emoji": "🔥" },
-            { "id": "agua", "name": "Agua", "emoji": "💧" },
-            { "id": "tierra", "name": "Tierra", "emoji": "🌱" },
-            { "id": "frio", "name": "Frío", "emoji": "❄️" }
-          ],
-          "correctCombination": ["agua", "frio"],
-          "successMessage": "¡Excelente! Al enfriar el agua condensamos las nubes y creamos lluvia.",
-          "failMessage": "Esa mezcla no hace llover... ¡Intenta otra combinación!"
-        }`;
-    } else if (mode === 'math-viva') {
-        systemInstruction = `Activa el Math Engine v5.2 con ACCESO A INTERNET para datos reales. Eres un entorno de simulación numérica interactiva para ${userName} de ${grade.name}.
-        
-        REGLAS DE MATEMÁTICAS VIVA:
-        - Si pide aprender (Sumas, Restas, Multiplicación, División, Raíz), genera una operación aleatoria adecuada a su grado.
-        - Si pide "Tablas" (ej. tabla del 6), genera SIEMPRE la operación base multiplicando por 1 (ej. "6 * 1") y en la explicación dile que use los botones + y - del 'Valor B' para explorar toda la tabla de manera visual e interactiva.
-        - IMPORTANTE: Usa analogías de laboratorio visual: manzanas, peras para contar; reglas graduadas para divisiones.
-        - Formato JSON estricto.
-        - Memoria: Tienes acceso a los últimos 10 niveles de ejercicios previos.
-        
-        FORMATO OBLIGATORIO JSON:
-        {
-          "type": "math-viva",
-          "operation": "Ej: 15 / 3",
-          "result": "5",
-          "steps": [
-            { "step": 1, "title": "...", "explanation": "Usa analogías visuales...", "formula": "..." }
-          ],
-          "properties": ["Propiedad 1", "Dato curioso"],
-          "socraticHint": "..."
-        }`;
     } else {
         systemInstruction = `Eres Techie, el Tutor AI de Catalizia en modo TUTOR SOCRÁTICO para un estudiante de ${grade.name} con ACCESO A INTERNET.
         REGLA DE ORO: NUNCA des la respuesta directamente. Da una pista sutil y haz una pregunta que lo acerque a la solución.
@@ -320,13 +297,14 @@ export const getChatResponse = async (
     }
 
     const result = await ai.models.generateContent({
-        model: 'gemini-1.5-flash',
+        model: 'gemini-2.5-flash',
         contents: history,
         config: {
-            temperature: (mode === 'explorer' || mode === 'math-viva') ? temperature : 0.3, 
+            temperature: (mode === 'explorer') ? temperature : 0.3, 
             tools: [{ googleSearch: {} }],
-            systemInstruction: systemInstruction.trim(),
-            responseMimeType: useJson ? "application/json" : "text/plain"
+            systemInstruction: (SAFETY_MANDATE + "\n" + systemInstruction).trim(),
+            responseMimeType: useJson ? "application/json" : "text/plain",
+            safetySettings: SAFETY_SETTINGS
         }
     });
     console.log('Gemini Response:', result);
@@ -338,7 +316,7 @@ export const reviewHomework = async (imagePart: any, text: string, grade: Grade,
 
   const prompt = `Revisa esta tarea para nivel ${grade.name}. Usa INTERNET para verificar si la información es correcta. Lenguaje adecuado para ${age} años. JSON format only.`;
   return await ai.models.generateContent({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-2.5-flash',
     contents: { parts: [imagePart, { text: prompt }] },
     config: { 
         tools: [{ googleSearch: {} }],
@@ -352,7 +330,7 @@ export const analyzeImage = async (imagePart: any, text: string, grade: Grade, u
 
     let systemInstruction = `Analiza la imagen educativamente para nivel ${grade.name}. Usa ACCESO A INTERNET para identificar hitos o datos reales.`;
     return await ai.models.generateContent({
-        model: 'gemini-1.5-flash',
+        model: 'gemini-2.5-flash',
         contents: { parts: [imagePart, { text: text || "Analiza" }] },
         config: { 
             systemInstruction, 
@@ -387,7 +365,7 @@ export const getDeepResearchResponse = async (topic: string, grade: Grade, userN
     ESTILO: Usa Markdown. Fondo blanco, textos azul oscuro.`;
 
     return await ai.models.generateContent({
-        model: 'gemini-1.5-pro',
+        model: 'gemini-2.5-pro',
         contents: topic,
         config: { 
             tools: [{ googleSearch: {} }], 
@@ -401,7 +379,7 @@ export const generateTopicQuiz = async (topic: string, grade: Grade, count: numb
     const ai = getAI(customKey);
     const prompt = `Usa INTERNET para generar un examen de ${count} preguntas REALES y actualizadas sobre: ${topic} para nivel escolar ${grade.name}. JSON format.`;
     const response = await ai.models.generateContent({
-        model: 'gemini-1.5-flash',
+        model: 'gemini-2.5-flash',
         contents: prompt,
         config: { 
             tools: [{ googleSearch: {} }],
@@ -416,7 +394,7 @@ export const generateFlashcards = async (text: string, customKey?: string): Prom
 
     const prompt = `Genera 5 flashcards educativas basadas en el texto. JSON: [{ "question": "", "answer": "" }]`;
     const response = await ai.models.generateContent({
-        model: 'gemini-1.5-flash',
+        model: 'gemini-2.5-flash',
         contents: prompt,
         config: { responseMimeType: 'application/json' }
     });

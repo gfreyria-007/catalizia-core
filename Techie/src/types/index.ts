@@ -5,17 +5,8 @@ export enum Role {
   SYSTEM = "system",
 }
 
-export type ChatMode = 'default' | 'guided' | 'explorer' | 'researcher' | 'quiz-master' | 'image-studio' | 'arcade' | 'review-homework' | 'math-viva' | 'alchemist';
+export type ChatMode = 'default' | 'guided' | 'explorer' | 'researcher' | 'quiz-master' | 'image-studio' | 'arcade' | 'review-homework';
 
-export interface AlchemistContent {
-  type: 'alchemist';
-  goal: string;
-  story: string;
-  elements: { id: string; name: string; emoji: string }[];
-  correctCombination: string[];
-  successMessage: string;
-  failMessage: string;
-}
 
 export interface ImageContent {
   type: 'image';
@@ -42,13 +33,14 @@ export interface ChatMessage {
 export type MessageContent = 
   | string 
   | ImageContent 
-  | MathContent 
-  | AlchemistContent 
   | SelectionContent 
   | SearchContent 
   | FullQuizContent 
   | QuizResultContent 
-  | QuizContent;
+  | QuizContent
+  | DeepResearchContent
+  | ReviewContent
+  | ReviewAllContent;
 
 export interface MathStep {
   step: number;
@@ -57,14 +49,6 @@ export interface MathStep {
   formula: string;
 }
 
-export interface MathContent {
-  type: 'math-viva';
-  operation: string;
-  result: string;
-  steps: MathStep[];
-  properties: string[];
-  socraticHint: string;
-}
 
 export interface Grade {
   id: string;
@@ -154,6 +138,12 @@ export interface ExamQuestion {
   explanation: string;
 }
 
+export interface DeepResearchContent {
+  type: 'deep-research';
+  topic: string;
+  markdownReport: string;
+}
+
 export interface FullQuizContent {
   type: 'full-quiz';
   topic: string;
@@ -206,6 +196,8 @@ export interface UserProfile {
   lastUsageDate: string;
   monthlyCostUsed?: number;
   lastCostResetDate?: string;
+  trialExpiresAt?: string;
+  isSubscribed?: boolean;
   age?: number;
   gradeId?: string;
   parentalConsent?: boolean;
@@ -213,5 +205,3 @@ export interface UserProfile {
   badges?: Badge[];
   projects?: Project[];
 }
-
-
