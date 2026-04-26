@@ -12,13 +12,14 @@ interface HeaderProps {
   onOpenSettings?: () => void;
   onOpenFAQ?: () => void;
   onOpenArcade?: () => void;
+  onOpenMathLab?: () => void;
   isMuted?: boolean;
   onToggleMute?: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ 
   onResetProfile, onIncreaseFont, onDecreaseFont, canIncrease, canDecrease,
-  onOpenAdmin, onOpenSettings, onOpenFAQ, onOpenArcade, 
+  onOpenAdmin, onOpenSettings, onOpenFAQ, onOpenArcade, onOpenMathLab, 
   isMuted, onToggleMute
 }) => {
   const { profile, isAdmin, logout } = useAuth();
@@ -96,6 +97,15 @@ const Header: React.FC<HeaderProps> = ({
         >
           <span className="text-lg">🎮</span>
           <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">Arcade</span>
+        </button>
+
+        <button 
+          onClick={onOpenMathLab}
+          className="p-2 hover:bg-white text-blue-600 rounded-xl transition-all flex items-center gap-2"
+          title="Laboratorio de Geometría"
+        >
+          <span className="text-lg">📐</span>
+          <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">Laboratorio</span>
         </button>
 
         <button 

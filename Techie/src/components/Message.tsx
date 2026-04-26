@@ -9,6 +9,7 @@ import SelectionMessage from './SelectionMessage';
 import SearchMessage from './SearchMessage';
 import FullQuizMessage from './FullQuizMessage';
 import QuizReportMessage from './QuizReportMessage';
+import MathMessage from './MathMessage';
 
 interface MessageProps {
   message: ChatMessage;
@@ -94,6 +95,8 @@ const Message: React.FC<MessageProps> = ({
         mainContent = <FullQuizMessage content={content} onFinish={onQuizFinished!} />;
     } else if (content.type === 'quiz-result') {
         mainContent = <QuizReportMessage content={content} onAwardBadge={onAwardBadge} />;
+    } else if (content.type === 'math') {
+        mainContent = <MathMessage content={content} />;
     } else {
         mainContent = null;
     }

@@ -292,8 +292,18 @@ export const getChatResponse = async (
             { "step": 1, "title": "Paso 1", "explanation": "Usa analogías visuales...", "formula": "..." }
           ],
           "properties": ["Dato curioso 1", "Aplicación real"],
-          "socraticHint": "¿Qué pasaría si...?"
-        }`;
+          "socraticHint": "¿Qué pasaría si...?",
+          "visualization": {
+            "type": "blocks | pizza | grid | comparison",
+            "data": { 
+               "blocks": { "total": 15, "groupSize": 3, "color": "blue" },
+               "pizza": { "slices": 8, "highlighted": [1, 2, 3], "label": "3/8" },
+               "grid": { "rows": 5, "cols": 3 },
+               "comparison": { "left": 10, "right": 20, "operator": "<" }
+            }
+          }
+        }
+        NOTA: Solo incluye el objeto de datos que corresponda al tipo elegido.`;
     } else {
         systemInstruction = `Eres Techie, el Tutor AI de Catalizia en modo TUTOR SOCRÁTICO para un estudiante de ${grade.name} con ACCESO A INTERNET.
         REGLA DE ORO: NUNCA des la respuesta directamente. Da una pista sutil y haz una pregunta que lo acerque a la solución.

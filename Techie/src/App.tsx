@@ -18,6 +18,7 @@ import ArcadeModal from './components/ArcadeModal';
 import SnakeGame from './components/SnakeGame';
 import TetrisGame from './components/TetrisGame';
 import SpaceAliensGame from './components/SpaceAliensGame';
+import MathLabModal from './components/MathLabModal';
 
 import { FirebaseUser } from './firebase';
 
@@ -96,6 +97,7 @@ const App: React.FC = () => {
   const [showArcade, setShowArcade] = useState(false);
   const [activeGame, setActiveGame] = useState<'snake' | 'tetris' | 'aliens' | null>(null);
   const [isMuted, setIsMuted] = useState(false);
+  const [showMathLab, setShowMathLab] = useState(false);
 
   const isTrialActive = userProfile?.trialExpiresAt ? new Date() < new Date(userProfile.trialExpiresAt) : true;
   const isSubscribed = userProfile?.isSubscribed || userProfile?.role === 'admin';
@@ -504,6 +506,7 @@ const App: React.FC = () => {
           onOpenSettings={() => setShowSettingsModal(true)}
           onOpenFAQ={() => setShowFAQ(true)}
           onOpenArcade={() => setShowArcade(true)}
+          onOpenMathLab={() => setShowMathLab(true)}
           isMuted={isMuted}
           onToggleMute={() => setIsMuted(!isMuted)}
         />
@@ -737,6 +740,12 @@ const App: React.FC = () => {
                 firebaseInitialized: true
             }}
         />
+
+        <AnimatePresence>
+            {showMathLab && (
+                <MathLabModal onClose={() => setShowMathLab(false)} />
+            )}
+        </AnimatePresence>
     </div>
   );
 };

@@ -40,13 +40,27 @@ export type MessageContent =
   | QuizContent
   | DeepResearchContent
   | ReviewContent
-  | ReviewAllContent;
+  | ReviewAllContent
+  | MathContent;
 
 export interface MathStep {
   step: number;
   title: string;
   explanation: string;
   formula: string;
+}
+
+export interface MathContent {
+  type: 'math';
+  operation: string;
+  result: string;
+  steps: MathStep[];
+  properties: string[];
+  socraticHint: string;
+  visualization?: {
+    type: 'blocks' | 'pizza' | 'grid' | 'comparison';
+    data: any;
+  };
 }
 
 
