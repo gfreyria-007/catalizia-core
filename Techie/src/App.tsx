@@ -101,7 +101,7 @@ const App: React.FC = () => {
 
   const isTrialActive = userProfile?.trialExpiresAt ? new Date() < new Date(userProfile.trialExpiresAt) : true;
   const isSubscribed = userProfile?.isSubscribed || userProfile?.role === 'admin';
-  const isEmailVerified = user?.emailVerified;
+  const isEmailVerified = currentUser?.emailVerified;
   const hasPersonalKey = !!userProfile?.personalApiKey;
 
   const canUseSystemKey = isTrialActive || isSubscribed;
@@ -288,7 +288,7 @@ const App: React.FC = () => {
 
 
       // Special handling for image studio mode with file attachment
-      if (activeMode === 'image-studio' && file) {
+      if (chatMode === 'image-studio' && file) {
           setImageCreationFile(file);
           setShowImageCreationModal(true);
           return;
@@ -308,9 +308,9 @@ const App: React.FC = () => {
       
       if (file && isReviewMode) setLoadingText("Revisando y evaluando tu tarea...");
       else if (file) setLoadingText("Observando y analizando la imagen...");
-      else if (activeMode === 'researcher') setLoadingText("Investigando y redactando reporte...");
-      else if (activeMode === 'quiz-master') setLoadingText("Diseñando un examen...");
-      else if (activeMode === 'explorer') setLoadingText("Buscando en la web...");
+      else if (chatMode === 'researcher') setLoadingText("Investigando y redactando reporte...");
+      else if (chatMode === 'quiz-master') setLoadingText("Diseñando un examen...");
+      else if (chatMode === 'explorer') setLoadingText("Buscando en la web...");
       else setLoadingText("Techie está pensando...");
       
       try {
@@ -318,7 +318,7 @@ const App: React.FC = () => {
           const history = getSimplifiedHistory([...messages, { role: Role.USER, content: text, timestamp: Date.now() }]);
           const customKey = getCustomKey();
 
-          if (activeMode === 'quiz-master' && !isInitialGreeting) {
+          if (chatMode === 'quiz-master' && !isInitialGreeting) {
               const quizQuestions = await geminiService.generateTopicQuiz(text, selectedGrade, quizCount || 5, customKey);
               addMessage(Role.MODEL, { type: 'full-quiz', topic: text, questions: quizQuestions });
               setIsChatLoading(false); return;
@@ -327,11 +327,11 @@ const App: React.FC = () => {
           if (isReviewMode && file) {
              response = await geminiService.reviewHomework(await fileToGenerativePart(file), text, selectedGrade, userName, userAge, customKey);
           } else if (file) {
-             response = await geminiService.analyzeImage(await fileToGenerativePart(file), text, selectedGrade, userName, userAge, history, activeMode, customKey);
-          } else if (activeMode === 'researcher' && !isInitialGreeting) {
+             response = await geminiService.analyzeImage(await fileToGenerativePart(file), text, selectedGrade, userName, userAge, history, chatMode, customKey);
+          } else if (chatMode === 'researcher' && !isInitialGreeting) {
              response = await geminiService.getDeepResearchResponse(text, selectedGrade, userName, userAge, customKey);
           } else {
-             response = await geminiService.getChatResponse(history, selectedGrade, userName, userAge, activeMode, explorerSettings.temperature, explorerSettings.persona, explorerSettings.customSystemInstruction || '', customKey);
+             response = await geminiService.getChatResponse(history, selectedGrade, userName, userAge, chatMode, explorerSettings.temperature, explorerSettings.persona, explorerSettings.customSystemInstruction || '', customKey);
           }
 
 
@@ -344,7 +344,7 @@ const App: React.FC = () => {
                   });
               }
 
-              if (activeMode === 'researcher' && !isInitialGreeting) {
+              if (chatMode === 'researcher' && !isInitialGreeting) {
                   addMessage(Role.MODEL, { type: 'deep-research', topic: text, markdownReport: response.text }, sources);
               } else {
                   try {
@@ -364,8 +364,8 @@ const App: React.FC = () => {
 
                   if (isOverDailyLimit) {
                       let addedCost = COSTS.FLASH;
-                      if (activeMode === 'researcher') addedCost = COSTS.RESEARCH;
-                      else if (activeMode === 'image-studio') addedCost = COSTS.IMAGE;
+                      if (chatMode === 'researcher') addedCost = COSTS.RESEARCH;
+                      else if (chatMode === 'image-studio') addedCost = COSTS.IMAGE;
                       newMonthlyCost += addedCost;
                   }
 
@@ -544,7 +544,7 @@ const App: React.FC = () => {
                         </button>
                     </div>
                     <button 
-                        onClick={logout}
+                        onClick={handleLogout}
                         className="mt-8 text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-red-500 transition-colors"
                     >
                         Cerrar Sesión
@@ -577,7 +577,7 @@ const App: React.FC = () => {
                         </div>
                     </div>
                     <button 
-                        onClick={logout}
+                        onClick={handleLogout}
                         className="text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-red-500 transition-colors"
                     >
                         Cerrar Sesión

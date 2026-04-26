@@ -5,7 +5,7 @@ export enum Role {
   SYSTEM = "system",
 }
 
-export type ChatMode = 'default' | 'guided' | 'explorer' | 'researcher' | 'quiz-master' | 'image-studio' | 'arcade' | 'review-homework';
+export type ChatMode = 'default' | 'guided' | 'explorer' | 'researcher' | 'quiz-master' | 'image-studio' | 'arcade' | 'review-homework' | 'math-viva';
 
 
 export interface ImageContent {
@@ -218,4 +218,5 @@ export interface UserProfile {
   parentalConsentDate?: string;
   badges?: Badge[];
   projects?: Project[];
+  createdAt?: any;
 }
