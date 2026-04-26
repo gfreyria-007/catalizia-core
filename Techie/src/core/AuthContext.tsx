@@ -57,6 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         } else if (!params.has('no_sso')) {
           // SILENT SSO CHECK: Redirect to Hub to see if user is logged in there
+          console.log('SILENT SSO: Checking Hub for session...');
           const hubUrl = window.location.hostname.endsWith('vercel.app') 
             ? 'https://catalizia-core.vercel.app' 
             : 'https://catalizia.com';
